@@ -15,7 +15,6 @@ Dependently-typed language embedded in javascript.
 - [Style Guide](STYLE-GUIDE.md) -- observe the style of existing code and respect it
 - [Code of Conduct](CODE-OF-CONDUCT.md)
 - Source code -- [github](https://github.com/xieyuheng/tartlet), [gitlab](https://gitlab.com/xieyuheng/tartlet)
-- [cicada-rs](http://github.com/xieyuheng/cicada-rs) -- an old version of the same project written in rust
 - IRC -- [#cicada-language](https://kiwiirc.com/nextclient/irc.freenode.net/#cicada-language)
 - CI -- [gitlab-ci](https://gitlab.com/xieyuheng/tartlet/pipelines)
 
