@@ -1,5 +1,14 @@
 # Tartlet
 
+Dependently-typed language embedded in javascript.
+
+- based on:
+  - "The little typer"
+    - by Daniel P. Friedman and David Thrane Christiansen
+  - "Checking Dependent Types with Normalization by Evaluation: A Tutorial"
+    - by David Thrane Christiansen
+    - origin http://davidchristiansen.dk/tutorials/nbe
+
 ## Community
 
 - We enforce C4 as collaboration protocol -- [The C4 RFC](https://rfc.zeromq.org/spec:42/C4)
