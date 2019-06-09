@@ -10,12 +10,17 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "test": "ava 2> /dev/null"
+    "test": "ava 2> /dev/null",
+    "api-build": "typedoc src --out docs/api --mode modules --ignoreCompilerErrors",
+    "api-surge": "surge docs/api api.tartlet.surge.sh",
+    "api-now": "now switch tartlet; now deploy docs/api --target production",
+    "api": "npm run api-build; npm run api-surge; npm run api-now"
   },
   "devDependencies": {
     "@types/assert": "^1.4.2",
     "@types/lodash": "^4.14.134",
     "ava": "^2.0.0",
+    "typedoc": "^0.14.2",
     "typescript": "^3.5.1"
   },
   "dependencies": {

@@ -9,6 +9,12 @@ Dependently-typed language (baking little pie) in javascript.
     - by David Thrane Christiansen
     - origin tutorial at :: http://davidchristiansen.dk/tutorials/nbe
 
+## Modules
+
+- `npm install tartlet`
+
+- [API Docs](https://api.tartlet.now.sh)
+
 ## Community
 
 - We enforce C4 as collaboration protocol -- [The C4 RFC](https://rfc.zeromq.org/spec:42/C4)
