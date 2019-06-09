@@ -7,7 +7,7 @@ Dependently-typed language embedded in javascript.
     - by Daniel P. Friedman and David Thrane Christiansen
   - "Checking Dependent Types with Normalization by Evaluation: A Tutorial"
     - by David Thrane Christiansen
-    - origin http://davidchristiansen.dk/tutorials/nbe
+    - origin tutorial at :: http://davidchristiansen.dk/tutorials/nbe
 
 ## Community
 
