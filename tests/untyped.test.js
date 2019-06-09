@@ -34,16 +34,10 @@ test ("freshen", t => {
 })
 
 test ("read_back", t => {
-  // ((lambda (x) (lambda (y) (x y))) (lambda (x) x))
-  // (lambda (y) y)
-
   let exp = cc.read_back (
     new Set (),
     APPLY (
-      LAMBDA ("x", LAMBDA ("y", APPLY (
-        VAR ("x"),
-        VAR ("y"),
-      ))),
+      LAMBDA ("x", LAMBDA ("y", APPLY (VAR ("x"), VAR ("y")))),
       LAMBDA ("x", VAR ("x")),
     ) .eval (),
   )
@@ -56,9 +50,6 @@ test ("read_back", t => {
 })
 
 test ("normalize", t => {
-  // ((lambda (x) (lambda (y) (x y))) (lambda (x) x))
-  // (lambda (y) y)
-
   let exp = cc.normalize (
     new cc.env_t (),
     APPLY (

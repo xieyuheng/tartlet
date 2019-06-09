@@ -61,20 +61,11 @@ test ("exp.check", t => {
     new ok_t ("ok"),
   )
 
-  // (lambda (j)
-  //  (lambda (k)
-  //   (rec Nat j k (lambda (n-1)
-  //                 (lambda (sum)
-  //                  (add1 sum))))))
-  // (-> Nat (-> Nat Nat))
-
   t.deepEqual (
     LAMBDA (
       "j", LAMBDA (
         "k", REC_NAT (
-          NAT,
-          VAR ("j"),
-          VAR ("k"),
+          NAT, VAR ("j"), VAR ("k"),
           LAMBDA (
             "prev", LAMBDA (
               "sum", ADD1 (VAR ("sum"))
@@ -90,21 +81,6 @@ test ("exp.check", t => {
 })
 
 test ("module.define", t => {
-  // ((define three
-  //   (the Nat
-  //    (add1 (add1 (add1 zero)))))
-  //  (define +
-  //   (the (-> Nat (-> Nat Nat))
-  //    (lambda (n)
-  //     (lambda (k)
-  //      (rec Nat n
-  //       k
-  //       (lambda (pred)
-  //        (lambda (almost-sum)
-  //         (add1 almost-sum))))))))
-  //  (+ three)
-  //  ((+ three) three))
-
   let m = MODULE ()
 
   m.claim (
@@ -125,9 +101,7 @@ test ("module.define", t => {
     LAMBDA (
       "n", LAMBDA (
         "k", REC_NAT (
-          NAT,
-          VAR ("n"),
-          VAR ("k"),
+          NAT, VAR ("n"), VAR ("k"),
           LAMBDA (
             "prev", LAMBDA (
               "almost",
