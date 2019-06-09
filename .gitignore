@@ -1,0 +1,12 @@
+# js
+dist
+lib
+node_modules
+
+# parcel
+.cache
+
+# emacs
+*~
+*#*
+.#*

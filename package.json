@@ -1,0 +1,24 @@
+{
+  "name": "tartlet",
+  "version": "0.0.1",
+  "author": "Xie Yuheng",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:xieyuheng/tartlet.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "ava 2> /dev/null"
+  },
+  "devDependencies": {
+    "@types/assert": "^1.4.2",
+    "@types/lodash": "^4.14.134",
+    "ava": "^2.0.0",
+    "typescript": "^3.5.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.11"
+  }
+}
