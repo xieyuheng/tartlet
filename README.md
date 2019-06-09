@@ -1,6 +1,6 @@
 # Tartlet
 
-Dependently-typed language embedded in javascript.
+Dependently-typed language (baking little pie) in javascript.
 
 - based on:
   - "The little typer"
