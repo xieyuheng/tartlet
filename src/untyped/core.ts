@@ -1,6 +1,5 @@
 import assert from "assert"
 import * as ut from "cicada-lang/lib/util"
-
 import { result_t, ok_t, err_t } from "cicada-lang/lib/result"
 import { option_t, some_t, none_t } from "cicada-lang/lib/option"
 
