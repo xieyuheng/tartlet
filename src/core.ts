@@ -4,6 +4,27 @@ import { result_t, ok_t, err_t } from "cicada-lang/lib/result"
 import { option_t, some_t, none_t } from "cicada-lang/lib/option"
 
 export
+let keywords = [
+  "define",
+  "U",
+  "Nat", "zero", "add1", "ind-Nat",
+  "Sigma", "cons", "car", "cdr",
+  "Pi",
+  "lambda",
+  "=", "same", "replace",
+  "Trivial", "sole",
+  "Absurd", "ind-Absurd",
+  "Atom", "quote",
+  "the",
+]
+
+
+export
+function valid_var_name (name: string): boolean {
+  return ! keywords.some (x => x === name)
+}
+
+export
 abstract class value_t {
   value_tag: "value_t" = "value_t"
 }

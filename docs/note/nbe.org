@@ -197,7 +197,49 @@
 
 * 7 A Tiny Piece of Pie
 
+  - Tartlet contains
+    functions,
+    pairs,
+    the natural numbers,
+    atoms,
+    and the unit
+    and empty types.
+
+  - Also, the Tartlet type of types, U, is a U.
+    This makes it inconsistent as a logic,
+    but it is still safe as a programming language.
+
+  - x -
+    how to show that Tartlet is inconsistent as a logic
+
 *** 7.1 The Language
+
+    #+begin_src
+    <expr> ::=
+      <id>
+      | ( Pi ( ( <id> <expr> ) ) <expr> )
+      | ( lambda ( <id> ) <expr> )
+      | ( <expr> <expr> )
+      | ( Sigma ( ( <id> <expr> ) ) <expr> )
+      | ( cons <expr> <expr> )
+      | ( car <expr> )
+      | ( cdr <expr> )
+      | Nat
+      | zero
+      | ( add1 <expr> )
+      | ( ind-Nat <expr> <expr> <expr> <expr> )
+      | ( = <expr> <expr> <expr> )
+      | same
+      | ( replace <expr> <expr> <expr> )
+      | Trivial
+      | sole
+      | Absurd
+      | ind-Absurd
+      | Atom
+      | ( quote <id> )
+      | U
+      | ( the <expr> <expr> )
+    #+end_src
 
 ***** 7.1.1 Identifiers
 
