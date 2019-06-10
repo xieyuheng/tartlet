@@ -249,15 +249,17 @@ function read_back (
       used_names,
       closure.name,
     )
-    let neutral_var = new neutral_var_t (fresh_name)
-    let inner_value = closure.body.eval (
-      closure.env.ext (closure.name, neutral_var)
+    return new lambda_t (
+      fresh_name, read_back (
+        new Set (used_names) .add (fresh_name),
+        closure.body.eval (
+          closure.env.ext (
+            closure.name,
+            new neutral_var_t (fresh_name),
+          )
+        )
+      )
     )
-    let new_body = read_back (
-      new Set (used_names) .add (fresh_name),
-      inner_value,
-    )
-    return new lambda_t (fresh_name, new_body)
   } else if (value instanceof neutral_var_t) {
     let neutral_var = value
     return new var_t (neutral_var.name)
