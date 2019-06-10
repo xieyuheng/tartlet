@@ -140,7 +140,7 @@ class add1_value_t extends value_t {
 }
 
 export
-class the_value_t extends value_t {
+class the_value_t {
   t: type_t
   value: value_t
 
@@ -148,7 +148,6 @@ class the_value_t extends value_t {
     t: type_t,
     value: value_t,
   ) {
-    super ()
     this.t = t
     this.value = value
   }
@@ -421,12 +420,8 @@ function freshen (
 }
 
 export
-abstract class neutral_t extends value_t {
+abstract class neutral_t {
   neutral_tag: "neutral_t" = "neutral_t"
-
-  constructor () {
-    super ()
-  }
 }
 
 export
