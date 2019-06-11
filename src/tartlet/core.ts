@@ -35,8 +35,55 @@ class env_t {
 }
 
 export
+abstract class closure_t {
+  closure_tag: "closure_t" = "closure_t"
+
+  abstract name: string
+}
+
+export
+class native_closure_t extends closure_t {
+  name: string
+  fun: (value: value_t) => value_t
+
+  constructor (
+    name: string,
+    fun: (value: value_t) => value_t,
+  ) {
+    super ()
+    this.name = name
+    this.fun = fun
+  }
+}
+
+export
+class env_closure_t extends closure_t {
+  env: env_t
+  name: string
+  body: exp_t
+
+  constructor (
+    env: env_t,
+    name: string,
+    body: exp_t,
+  ) {
+    super ()
+    this.env = env
+    this.name = name
+    this.body = body
+  }
+}
+
+export
 abstract class exp_t {
   exp_tag: "exp_t" = "exp_t"
+
+  // TODO
+  // abstract alpha_eq (
+  //   that: exp_t,
+  //   this_map: Map <string, string>,
+  //   that_map: Map <string, string>,
+  // ): boolean
 }
 
 // <expr> ::=
@@ -306,13 +353,13 @@ class exp_atom_t extends exp_t {
 
 export
 class exp_quote_t extends exp_t {
-  str: string
+  sym: string
 
   constructor (
-    str: string
+    sym: string
   ) {
     super ()
-    this.str = str
+    this.sym = sym
   }
 }
 
@@ -341,4 +388,306 @@ class exp_the_t extends exp_t {
 export
 abstract class value_t {
   value_tag: "value_t" = "value_t"
+}
+
+export
+class value_pi_t extends value_t {
+  arg_type: value_t
+  ret_type: closure_t
+
+  constructor (
+    arg_type: value_t,
+    ret_type: closure_t,
+  ) {
+    super ()
+    this.arg_type = arg_type
+    this.ret_type = ret_type
+  }
+}
+
+export
+class value_lambda_t extends value_t {
+  body: closure_t
+
+  constructor (
+    body: closure_t,
+  ) {
+    super ()
+    this.body = body
+  }
+}
+
+export
+class value_sigma_t extends value_t {
+  car_type: value_t
+  cdr_type: closure_t
+
+  constructor (
+    car_type: value_t,
+    cdr_type: closure_t,
+  ) {
+    super ()
+    this.car_type = car_type
+    this.cdr_type = cdr_type
+  }
+}
+
+export
+class value_pair_t extends value_t {
+  car: value_t
+  cdr: value_t
+
+  constructor (
+    car: value_t,
+    cdr: value_t,
+  ) {
+    super ()
+    this.car = car
+    this.cdr = cdr
+  }
+}
+
+export
+class value_nat_t extends value_t {
+  constructor (
+  ) {
+    super ()
+  }
+}
+
+export
+class value_zero_t extends value_t {
+  constructor (
+  ) {
+    super ()
+  }
+}
+
+export
+class value_add1_t extends value_t {
+  prev: value_t
+
+  constructor (
+    prev: value_t,
+  ) {
+    super ()
+    this.prev = prev
+  }
+}
+
+export
+class value_eqv_t extends value_t {
+  t: value_t
+  from: value_t
+  to: value_t
+
+  constructor (
+    t: value_t,
+    from: value_t,
+    to: value_t,
+  ) {
+    super ()
+    this.t = t
+    this.from = from
+    this.to = to
+  }
+}
+
+export
+class value_same_t extends value_t {
+  constructor (
+  ) {
+    super ()
+  }
+}
+
+export
+class value_trivial_t extends value_t {
+  constructor (
+  ) {
+    super ()
+  }
+}
+
+export
+class value_sole_t extends value_t {
+  constructor (
+  ) {
+    super ()
+  }
+}
+
+export
+class value_absurd_t extends value_t {
+  constructor (
+  ) {
+    super ()
+  }
+}
+
+export
+class value_atom_t extends value_t {
+  constructor (
+  ) {
+    super ()
+  }
+}
+
+export
+class value_quote_t extends value_t {
+  sym: string
+
+  constructor (
+    sym: string
+  ) {
+    super ()
+    this.sym = sym
+  }
+}
+
+export
+class value_universe_t extends value_t {
+  constructor (
+  ) {
+    super ()
+  }
+}
+
+export
+class the_neutral_t extends value_t {
+  t: value_t
+  neutral: neutral_t
+
+  constructor (
+    t: value_t,
+    neutral: neutral_t,
+  ) {
+    super ()
+    this.t = t
+    this.neutral = neutral
+  }
+}
+
+export
+abstract class neutral_t {
+  neutral_tag: "neutral_t" = "neutral_t"
+}
+
+export
+class neutral_var_t extends neutral_t {
+  name: string
+
+  constructor (
+    name: string,
+  ) {
+    super ()
+    this.name = name
+  }
+}
+
+export
+class neutral_apply_t extends neutral_t {
+  fun: neutral_t
+  arg: the_value_t
+
+  constructor (
+    fun: neutral_t,
+    arg: the_value_t,
+  ) {
+    super ()
+    this.fun = fun
+    this.arg = arg
+  }
+}
+
+export
+class neutral_car_t extends neutral_t {
+  pair: neutral_t
+
+  constructor (
+    pair: neutral_t
+  ) {
+    super ()
+    this.pair = pair
+  }
+}
+
+export
+class neutral_cdr_t extends neutral_t {
+  pair: neutral_t
+
+  constructor (
+    pair: neutral_t
+  ) {
+    super ()
+    this.pair = pair
+  }
+}
+
+export
+class neutral_ind_nat_t extends neutral_t {
+  target: neutral_t
+  motive: the_value_t
+  base: the_value_t
+  step: the_value_t
+
+  constructor (
+    target: neutral_t,
+    motive: the_value_t,
+    base: the_value_t,
+    step: the_value_t,
+  ) {
+    super ()
+    this.target = target
+    this.motive = motive
+    this.base = base
+    this.step = step
+  }
+}
+
+export
+class neutral_replace_t extends neutral_t {
+  target: neutral_t
+  motive: the_value_t
+  base: the_value_t
+
+  constructor (
+    target: neutral_t,
+    motive: the_value_t,
+    base: the_value_t,
+  ) {
+    super ()
+    this.target = target
+    this.motive = motive
+    this.base = base
+  }
+}
+
+export
+class neutral_ind_absurd_t extends neutral_t {
+  target: neutral_t
+  motive: the_value_t
+
+  constructor (
+    target: neutral_t,
+    motive: the_value_t,
+  ) {
+    super ()
+    this.target = target
+    this.motive = motive
+  }
+}
+
+export
+class the_value_t {
+  t: value_t
+  value: value_t
+
+  constructor (
+    t: value_t,
+    value: value_t,
+  ) {
+    this.t = t
+    this.value = value
+  }
 }

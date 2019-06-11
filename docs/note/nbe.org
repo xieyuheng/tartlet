@@ -247,11 +247,56 @@
 
 *** 7.2 Values and Normalization
 
+    - x - about constructor and eliminator
+      there are two kinds of `exp_t` -- constructor and eliminator
+      - a constructor correspond to a `value_t`
+      - a eliminator correspond to a `neutral_t`
+
+    - x - about `the_neutral_t`
+      a `neutral_t` is not a `value_t`,
+      when wish to use a `neutral_t` as `value_t`,
+      we must also provide its type,
+      thus the structure of `the_neutral_t`.
+      a `the_neutral_t` is a `value_t`.
+
+    - x - about `the_value_t`
+      when a `neutral_t` needs a field contain `value_t`,
+      we must also provide the type,
+      thus the structure of `the_value_t` (so called normal form),
+      but a `the_value_t` is not a `value_t`,
+      since it will only occur in fields of `neutral_t`.
+
+    - x - summary
+      #+begin_src typescript
+      abstract class value_t {}
+      class the_neutral_t extends value_t { t: value_t, neutral: neutral_t }
+      abstract class neutral_t { <target>: neutral_t, <field>: the_value_t }
+      class the_value_t { t: value_t, value: value_t }
+      #+end_src
+
 ***** 7.2.1 The Values
+
+      - Following the recipe for normalization by evaluation,
+        we need to define value representations
+        of each constructor and type constructor in the language.
+
+      - The values represent the introduction forms and the type constructors.
+        Because they do not contain any potential computation other than neutral expressions,
+        they represent only the values of Tartlet.
 
 ***** 7.2.2 Neutral Expressions
 
+      - At the basis of recursive definition of `neutral_t` is `neutral_var_t`
+
+      - Each eliminator in the language (including function application),
+        must be able to recognize neutral targets
+        and construct a representation of itself as a neutral expression.
+
 ***** 7.2.3 Normal Forms
+
+      - The internal representation of normal forms,
+        constructed with "THE",
+        pairs a type value with a value classified by the type.
 
 *** 7.3 Definitions and Dependent Types
 
