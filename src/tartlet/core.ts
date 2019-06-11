@@ -82,6 +82,58 @@ class ctx_t {
         .set (name, den)
     )
   }
+
+  to_env (): env_t {
+    let map = new Map ()
+    for (let [name, den] of this.map.entries ()) {
+      if (den instanceof def_t) {
+        map.set (name, den.value)
+      } else if (den instanceof bind_t) {
+        map.set (
+          name, new the_neutral_t (
+            den.t,
+            new neutral_var_t (name),
+          )
+        )
+      } else {
+        throw new Error (
+          `unknow type of den_t ${den.constructor.name}`
+        )
+      }
+    }
+    return new env_t (map)
+  }
+}
+
+export
+class env_t {
+  map: Map <string, value_t>
+
+  constructor (
+    map: Map <string, value_t> = new Map ()
+  ) {
+    this.map = map
+  }
+
+  lookup_value (name: string): option_t <value_t> {
+    let value = this.map.get (name)
+    if (value !== undefined) {
+      return new some_t (value)
+    } else {
+      return new none_t ()
+    }
+  }
+
+  copy (): env_t {
+    return new env_t (new Map (this.map))
+  }
+
+  ext (name: string, value: value_t): env_t {
+    return new env_t (
+      new Map (this.map)
+        .set (name, value)
+    )
+  }
 }
 
 export
@@ -89,6 +141,8 @@ abstract class closure_t {
   closure_tag: "closure_t" = "closure_t"
 
   abstract name: string
+
+  abstract apply (value: value_t): value_t
 }
 
 export
@@ -104,23 +158,33 @@ class native_closure_t extends closure_t {
     this.name = name
     this.fun = fun
   }
+
+  apply (value: value_t): value_t {
+    return this.fun (value)
+  }
 }
 
 export
-class ctx_closure_t extends closure_t {
-  ctx: ctx_t
+class env_closure_t extends closure_t {
+  env: env_t
   name: string
   body: exp_t
 
   constructor (
-    ctx: ctx_t,
+    env: env_t,
     name: string,
     body: exp_t,
   ) {
     super ()
-    this.ctx = ctx
+    this.env = env
     this.name = name
     this.body = body
+  }
+
+  apply (value: value_t): value_t {
+    return this.body.eval (
+      this.env.ext (this.name, value)
+    )
   }
 }
 
@@ -137,8 +201,7 @@ abstract class exp_t {
     that_map: Map <string, string>,
   ): boolean
 
-  // TODO
-  // abstract eval (ctx: ctx_t): value_t
+  abstract eval (env: env_t): value_t
 }
 
 // <expr> ::=
@@ -160,7 +223,7 @@ abstract class exp_t {
 //   | Trivial
 //   | sole
 //   | Absurd
-//   | ind-Absurd
+//   | ( ind-Absurd <expr> <expr> )
 //   | Atom
 //   | ( quote <id> )
 //   | U
@@ -195,6 +258,14 @@ class exp_var_t extends exp_t {
     } else {
       return false
     }
+  }
+
+  eval (env: env_t): value_t {
+    return env.lookup_value (this.name) .unwrap_or_throw (
+      new Error (
+        `undefined name: ${this.name}`
+      )
+    )
   }
 }
 
@@ -235,6 +306,17 @@ class exp_pi_t extends exp_t {
       return false
     }
   }
+
+  eval (env: env_t): value_t {
+    return new value_pi_t (
+      this.arg_type.eval (env),
+      new env_closure_t (
+        env,
+        this.name,
+        this.ret_type,
+      )
+    )
+  }
 }
 
 export
@@ -267,6 +349,16 @@ class exp_lambda_t extends exp_t {
       return false
     }
   }
+
+  eval (env: env_t): value_t {
+    return new value_lambda_t (
+      new env_closure_t (
+        env,
+        this.name,
+        this.body,
+      )
+    )
+  }
 }
 
 export
@@ -294,6 +386,20 @@ class exp_apply_t extends exp_t {
     } else {
       return false
     }
+  }
+
+  static exe (
+    rator: value_t,
+    rand: value_t,
+  ): value_t {
+    return ut.TODO ()
+  }
+
+  eval (env: env_t): value_t {
+    return exp_apply_t.exe (
+      this.rator.eval (env),
+      this.rand.eval (env),
+    )
   }
 }
 
@@ -334,6 +440,17 @@ class exp_sigma_t extends exp_t {
       return false
     }
   }
+
+  eval (env: env_t): value_t {
+    return new value_sigma_t (
+      this.car_type.eval (env),
+      new env_closure_t (
+        env,
+        this.name,
+        this.cdr_type,
+      )
+    )
+  }
 }
 
 export
@@ -362,6 +479,13 @@ class exp_cons_t extends exp_t {
       return false
     }
   }
+
+  eval (env: env_t): value_t {
+    return new value_pair_t (
+      this.car.eval (env),
+      this.cdr.eval (env),
+    )
+  }
 }
 
 export
@@ -385,6 +509,18 @@ class exp_car_t extends exp_t {
     } else {
       return false
     }
+  }
+
+  static exe (
+    pair: value_t,
+  ): value_t {
+    return ut.TODO ()
+  }
+
+  eval (env: env_t): value_t {
+    return exp_car_t.exe (
+      this.pair.eval (env),
+    )
   }
 }
 
@@ -410,6 +546,18 @@ class exp_cdr_t extends exp_t {
       return false
     }
   }
+
+  static exe (
+    pair: value_t,
+  ): value_t {
+    return ut.TODO ()
+  }
+
+  eval (env: env_t): value_t {
+    return exp_cdr_t.exe (
+      this.pair.eval (env),
+    )
+  }
 }
 
 export
@@ -429,6 +577,10 @@ class exp_nat_t extends exp_t {
       return false
     }
   }
+
+  eval (env: env_t): value_t {
+    return new value_nat_t ()
+  }
 }
 
 export
@@ -447,6 +599,10 @@ class exp_zero_t extends exp_t {
     } else {
       return false
     }
+  }
+
+  eval (env: env_t): value_t {
+    return new value_zero_t ()
   }
 }
 
@@ -475,6 +631,12 @@ class exp_add1_t extends exp_t {
     } else {
       return false
     }
+  }
+
+  eval (env: env_t): value_t {
+    return new value_add1_t (
+      this.prev.eval (env)
+    )
   }
 }
 
@@ -512,6 +674,24 @@ class exp_ind_nat_t extends exp_t {
       return false
     }
   }
+
+  static exe (
+    t: value_t,
+    target: value_t,
+    base: value_t,
+    step: value_t,
+  ): value_t {
+    return ut.TODO ()
+  }
+
+  eval (env: env_t): value_t {
+    return exp_ind_nat_t.exe (
+      this.t.eval (env),
+      this.target.eval (env),
+      this.base.eval (env),
+      this.step.eval (env),
+    )
+  }
 }
 
 export
@@ -544,6 +724,14 @@ class exp_eqv_t extends exp_t {
       return false
     }
   }
+
+  eval (env: env_t): value_t {
+    return new value_eqv_t (
+      this.t.eval (env),
+      this.from.eval (env),
+      this.to.eval (env),
+    )
+  }
 }
 
 export
@@ -563,23 +751,27 @@ class exp_same_t extends exp_t {
       return false
     }
   }
+
+  eval (env: env_t): value_t {
+    return new value_same_t ()
+  }
 }
 
 export
 class exp_replace_t extends exp_t {
-  t: exp_t
-  from: exp_t
-  to: exp_t
+  target: exp_t
+  motive: exp_t
+  base: exp_t
 
   constructor (
-    t: exp_t,
-    from: exp_t,
-    to: exp_t,
+    target: exp_t,
+    motive: exp_t,
+    base: exp_t,
   ) {
     super ()
-    this.t = t
-    this.from = from
-    this.to = to
+    this.target = target
+    this.motive = motive
+    this.base = base
   }
 
   alpha_eq (
@@ -592,6 +784,22 @@ class exp_replace_t extends exp_t {
     } else {
       return false
     }
+  }
+
+  static exe (
+    target: value_t,
+    motive: value_t,
+    base: value_t,
+  ): value_t {
+    return ut.TODO ()
+  }
+
+  eval (env: env_t): value_t {
+    return exp_replace_t.exe (
+      this.target.eval (env),
+      this.motive.eval (env),
+      this.base.eval (env),
+    )
   }
 }
 
@@ -612,6 +820,10 @@ class exp_trivial_t extends exp_t {
       return false
     }
   }
+
+  eval (env: env_t): value_t {
+    return new value_trivial_t ()
+  }
 }
 
 export
@@ -630,6 +842,10 @@ class exp_sole_t extends exp_t {
     } else {
       return false
     }
+  }
+
+  eval (env: env_t): value_t {
+    return new value_sole_t ()
   }
 }
 
@@ -650,12 +866,24 @@ class exp_absurd_t extends exp_t {
       return false
     }
   }
+
+  eval (env: env_t): value_t {
+    return new value_absurd_t ()
+  }
 }
 
 export
 class exp_ind_absurd_t extends exp_t {
-  constructor () {
+  target: exp_t
+  motive: exp_t
+
+  constructor (
+    target: exp_t,
+    motive: exp_t,
+  ) {
     super ()
+    this.target = target
+    this.motive = motive
   }
 
   alpha_eq (
@@ -664,10 +892,25 @@ class exp_ind_absurd_t extends exp_t {
     that_map: Map <string, string>,
   ): boolean {
     if (that instanceof exp_ind_absurd_t) {
-      return true
+      return this.target.alpha_eq (that.target, this_map, that_map)
+        && this.motive.alpha_eq (that.motive, this_map, that_map)
     } else {
       return false
     }
+  }
+
+  static exe (
+    target: value_t,
+    motive: value_t,
+  ): value_t {
+    return ut.TODO ()
+  }
+
+  eval (env: env_t): value_t {
+    return exp_ind_absurd_t.exe (
+      this.target.eval (env),
+      this.motive.eval (env),
+    )
   }
 }
 
@@ -687,6 +930,10 @@ class exp_atom_t extends exp_t {
     } else {
       return false
     }
+  }
+
+  eval (env: env_t): value_t {
+    return new value_atom_t ()
   }
 }
 
@@ -712,6 +959,10 @@ class exp_quote_t extends exp_t {
       return false
     }
   }
+
+  eval (env: env_t): value_t {
+    return new value_quote_t (this.sym)
+  }
 }
 
 export
@@ -730,6 +981,10 @@ class exp_universe_t extends exp_t {
     } else {
       return false
     }
+  }
+
+  eval (env: env_t): value_t {
+    return new value_universe_t ()
   }
 }
 
@@ -765,6 +1020,10 @@ class exp_the_t extends exp_t {
     } else {
       return false
     }
+  }
+
+  eval (env: env_t): value_t {
+    return this.value.eval (env)
   }
 }
 

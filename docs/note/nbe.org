@@ -321,6 +321,11 @@
 
 ***** 7.3.2 Eliminators
 
+      - Each eliminator is realized by a native procedure.
+        This procedure checks whether the target of elimination is neutral,
+        and if so, it produces a new neutral expression.
+        Otherwise, it finds the resulting value.
+
 ***** 7.3.3 Reading Back
 
 *** 7.4 Type Checking

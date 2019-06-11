@@ -92,32 +92,6 @@ class closure_t extends value_t {
     this.name = name
     this.body = body
   }
-
-  static exe (fun: value_t, arg: value_t): value_t {
-    if (fun instanceof closure_t) {
-      return fun.body.eval (
-        fun.env.ext (fun.name, arg)
-      )
-    } else if (fun instanceof the_neutral_t) {
-      if (fun.t instanceof arrow_t) {
-        return new the_neutral_t (
-          fun.t.ret,
-          new neutral_apply_t (
-            fun.neutral,
-            new the_value_t (fun.t.arg, arg)
-          )
-        )
-      } else {
-        throw new Error (
-          `type of the neutral fun is not arrow_t`
-        )
-      }
-    } else {
-      throw new Error (
-        `unknown fun value: ${fun}`
-      )
-    }
-  }
 }
 
 export
@@ -302,8 +276,34 @@ class apply_t extends exp_t {
       && this.rand.eq (that.rand)
   }
 
+  static exe (fun: value_t, arg: value_t): value_t {
+    if (fun instanceof closure_t) {
+      return fun.body.eval (
+        fun.env.ext (fun.name, arg)
+      )
+    } else if (fun instanceof the_neutral_t) {
+      if (fun.t instanceof arrow_t) {
+        return new the_neutral_t (
+          fun.t.ret,
+          new neutral_apply_t (
+            fun.neutral,
+            new the_value_t (fun.t.arg, arg)
+          )
+        )
+      } else {
+        throw new Error (
+          `type of the neutral fun is not arrow_t`
+        )
+      }
+    } else {
+      throw new Error (
+        `unknown fun value: ${fun}`
+      )
+    }
+  }
+
   eval (env: env_t = new env_t ()): value_t {
-    return closure_t.exe (
+    return apply_t.exe (
       this.rator.eval (env),
       this.rand.eval (env))
   }
@@ -503,7 +503,7 @@ function read_back (
       fresh_name, read_back (
         new Set (used_names) .add (fresh_name),
         t.ret,
-        closure_t.exe (
+        apply_t.exe (
           value,
           new the_neutral_t (
             t.arg,
@@ -658,8 +658,8 @@ class rec_nat_t extends exp_t {
     if (target instanceof value_zero_t) {
       return base
     } else if (target instanceof value_add1_t) {
-      return closure_t.exe (
-        closure_t.exe (step, target.prev),
+      return apply_t.exe (
+        apply_t.exe (step, target.prev),
         rec_nat_t.exe (
           t,
           target.prev,

@@ -20,7 +20,7 @@
     "@types/assert": "^1.4.2",
     "@types/lodash": "^4.14.134",
     "@types/nanoid": "^2.0.0",
-    "ava": "^2.0.0",
+    "ava": "^2.1.0",
     "typedoc": "^0.14.2",
     "typescript": "^3.5.1"
   },
