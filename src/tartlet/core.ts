@@ -388,18 +388,31 @@ class exp_apply_t extends exp_t {
     }
   }
 
-  static exe (
-    rator: value_t,
-    rand: value_t,
-  ): value_t {
-    return ut.TODO ()
-  }
-
   eval (env: env_t): value_t {
     return exp_apply_t.exe (
       this.rator.eval (env),
       this.rand.eval (env),
     )
+  }
+
+  static exe (
+    fun: value_t,
+    arg: value_t,
+  ): value_t {
+    if (fun instanceof value_lambda_t) {
+      return fun.body.apply (arg)
+    } else if (fun instanceof the_neutral_t &&
+               fun.t instanceof value_pi_t) {
+      return new the_neutral_t (
+        fun.t.ret_type.apply (arg),
+        new neutral_apply_t (
+          fun.neutral,
+          new the_value_t (fun.t.arg_type, arg),
+        )
+      )
+    } else {
+      throw new Error (`exe wrong type of value`)
+    }
   }
 }
 
@@ -511,16 +524,26 @@ class exp_car_t extends exp_t {
     }
   }
 
-  static exe (
-    pair: value_t,
-  ): value_t {
-    return ut.TODO ()
-  }
-
   eval (env: env_t): value_t {
     return exp_car_t.exe (
       this.pair.eval (env),
     )
+  }
+
+  static exe (
+    pair: value_t,
+  ): value_t {
+    if (pair instanceof value_pair_t) {
+      return pair.car
+    } else if (pair instanceof the_neutral_t &&
+               pair.t instanceof value_sigma_t) {
+      return new the_neutral_t (
+        pair.t.car_type,
+        new neutral_car_t (pair.neutral),
+      )
+    } else {
+      throw new Error (`exe wrong type of value`)
+    }
   }
 }
 
@@ -547,16 +570,28 @@ class exp_cdr_t extends exp_t {
     }
   }
 
-  static exe (
-    pair: value_t,
-  ): value_t {
-    return ut.TODO ()
-  }
-
   eval (env: env_t): value_t {
     return exp_cdr_t.exe (
       this.pair.eval (env),
     )
+  }
+
+  static exe (
+    pair: value_t,
+  ): value_t {
+    if (pair instanceof value_pair_t) {
+      return pair.cdr
+    } else if (pair instanceof the_neutral_t &&
+               pair.t instanceof value_sigma_t) {
+      return new the_neutral_t (
+        pair.t.cdr_type.apply (
+          exp_car_t.exe (pair)
+        ),
+        new neutral_cdr_t (pair.neutral),
+      )
+    } else {
+      throw new Error (`exe wrong type of value`)
+    }
   }
 }
 
@@ -642,20 +677,20 @@ class exp_add1_t extends exp_t {
 
 export
 class exp_ind_nat_t extends exp_t {
-  t: exp_t
   target: exp_t
+  motive: exp_t
   base: exp_t
   step: exp_t
 
   constructor (
-    t: exp_t,
     target: exp_t,
+    motive: exp_t,
     base: exp_t,
     step: exp_t,
   ) {
     super ()
-    this.t = t
     this.target = target
+    this.motive = motive
     this.base = base
     this.step = step
   }
@@ -666,8 +701,8 @@ class exp_ind_nat_t extends exp_t {
     that_map: Map <string, string>,
   ): boolean {
     if (that instanceof exp_ind_nat_t) {
-      return this.t.alpha_eq (that.t, this_map, that_map)
-        && this.target.alpha_eq (that.target, this_map, that_map)
+      return this.target.alpha_eq (that.target, this_map, that_map)
+        && this.motive.alpha_eq (that.motive, this_map, that_map)
         && this.base.alpha_eq (that.base, this_map, that_map)
         && this.step.alpha_eq (that.step, this_map, that_map)
     } else {
@@ -675,22 +710,73 @@ class exp_ind_nat_t extends exp_t {
     }
   }
 
-  static exe (
-    t: value_t,
-    target: value_t,
-    base: value_t,
-    step: value_t,
-  ): value_t {
-    return ut.TODO ()
-  }
-
   eval (env: env_t): value_t {
     return exp_ind_nat_t.exe (
-      this.t.eval (env),
       this.target.eval (env),
+      this.motive.eval (env),
       this.base.eval (env),
       this.step.eval (env),
     )
+  }
+
+  static exe (
+    target: value_t,
+    motive: value_t,
+    base: value_t,
+    step: value_t,
+  ): value_t {
+    if (target instanceof value_zero_t) {
+      return base
+    } else if (target instanceof value_add1_t) {
+      return exp_apply_t.exe (
+        exp_apply_t.exe (step, target.prev),
+        exp_ind_nat_t.exe (
+          target.prev,
+          motive,
+          base,
+          step,
+        )
+      )
+    } else if (target instanceof the_neutral_t &&
+               target.t instanceof value_nat_t) {
+      return new the_neutral_t (
+        exp_apply_t.exe (motive, target),
+        new neutral_ind_nat_t (
+          target.neutral,
+          new the_value_t (
+            new value_pi_t (
+              new value_nat_t (),
+              new native_closure_t ("k", k => {
+                return new value_universe_t ()
+              })
+            ),
+            motive,
+          ),
+          new the_value_t (
+            exp_apply_t.exe (motive, new value_zero_t ()),
+            base,
+          ),
+          new the_value_t (
+            new value_pi_t (
+              new value_nat_t (),
+              new native_closure_t ("prev", prev => {
+                return new value_pi_t (
+                  exp_apply_t.exe (motive, prev),
+                  new native_closure_t ("almost", almost => {
+                    return exp_apply_t.exe (
+                      motive, new value_add1_t (prev)
+                    )
+                  })
+                )
+              })
+            ),
+            step,
+          )
+        )
+      )
+    } else {
+      throw new Error (`exe wrong type of value`)
+    }
   }
 }
 
@@ -786,20 +872,45 @@ class exp_replace_t extends exp_t {
     }
   }
 
-  static exe (
-    target: value_t,
-    motive: value_t,
-    base: value_t,
-  ): value_t {
-    return ut.TODO ()
-  }
-
   eval (env: env_t): value_t {
     return exp_replace_t.exe (
       this.target.eval (env),
       this.motive.eval (env),
       this.base.eval (env),
     )
+  }
+
+  static exe (
+    target: value_t,
+    motive: value_t,
+    base: value_t,
+  ): value_t {
+    if (target instanceof value_same_t) {
+      return base
+    } else if (target instanceof the_neutral_t &&
+               target.t instanceof value_eqv_t) {
+      return new the_neutral_t (
+        exp_apply_t.exe (motive, target.t.to),
+        new neutral_replace_t (
+          target.neutral,
+          new the_value_t (
+            new value_pi_t (
+              target.t.t,
+              new native_closure_t ("x", _value => {
+                return new value_universe_t ()
+              })
+            ),
+            motive,
+          ),
+          new the_value_t (
+            exp_apply_t.exe (motive, target.t.from),
+            base,
+          )
+        )
+      )
+    } else {
+      throw new Error (`exe wrong type of value`)
+    }
   }
 }
 
@@ -899,18 +1010,32 @@ class exp_ind_absurd_t extends exp_t {
     }
   }
 
-  static exe (
-    target: value_t,
-    motive: value_t,
-  ): value_t {
-    return ut.TODO ()
-  }
-
   eval (env: env_t): value_t {
     return exp_ind_absurd_t.exe (
       this.target.eval (env),
       this.motive.eval (env),
     )
+  }
+
+  static exe (
+    target: value_t,
+    motive: value_t,
+  ): value_t {
+    if (target instanceof the_neutral_t &&
+        target.t instanceof value_absurd_t) {
+      return new the_neutral_t (
+        motive,
+        new neutral_ind_absurd_t (
+          target.neutral,
+          new the_value_t (
+            new value_universe_t (),
+            motive,
+          )
+        )
+      )
+    } else {
+      throw new Error (`exe wrong type of value`)
+    }
   }
 }
 
