@@ -4,34 +4,82 @@ import * as ut from "cicada-lang/lib/util"
 import { result_t, ok_t, err_t } from "cicada-lang/lib/result"
 import { option_t, some_t, none_t } from "cicada-lang/lib/option"
 
-// TODO
 export
-class env_t {
-  map: Map <string, value_t>
+abstract class den_t {
+  den_tag: "den_t" = "den_t"
+}
+
+export
+class def_t extends den_t {
+  t: value_t
+  value: value_t
 
   constructor (
-    map: Map <string, value_t> = new Map ()
+    t: value_t,
+    value: value_t,
+  ) {
+    super ()
+    this.t = t
+    this.value = value
+  }
+}
+
+export
+class bind_t extends den_t {
+  t: value_t
+
+  constructor (
+    t: value_t,
+  ) {
+    super ()
+    this.t = t
+  }
+}
+
+export
+class ctx_t {
+  map: Map <string, den_t>
+
+  constructor (
+    map: Map <string, den_t> = new Map ()
   ) {
     this.map = map
   }
 
-  find (name: string): option_t <value_t> {
-    let value = this.map.get (name)
-    if (value !== undefined) {
-      return new some_t (value)
+  lookup_type (name: string): option_t <value_t> {
+    let den = this.map.get (name)
+    if (den instanceof def_t &&
+        den instanceof bind_t) {
+      return new some_t (den.t)
     } else {
       return new none_t ()
     }
   }
 
-  copy (): env_t {
-    return new env_t (new Map (this.map))
+  lookup_value (name: string): option_t <value_t> {
+    let den = this.map.get (name)
+    if (den instanceof def_t) {
+      return new some_t (den.value)
+    } else if (den instanceof bind_t) {
+      return new some_t (
+        new the_neutral_t (
+          den.t,
+          new neutral_var_t (name),
+        )
+      )
+    } else {
+      return new none_t ()
+    }
   }
 
-  ext (name: string, value: value_t): env_t {
-    return new env_t (
+  copy (): ctx_t {
+    return new ctx_t (new Map (this.map))
+  }
+
+  ext (name: string, den: den_t): ctx_t {
+    return new ctx_t (
       new Map (this.map)
-        .set (name, value)
+        .set (name, den)
     )
   }
 }
@@ -59,18 +107,18 @@ class native_closure_t extends closure_t {
 }
 
 export
-class env_closure_t extends closure_t {
-  env: env_t
+class ctx_closure_t extends closure_t {
+  ctx: ctx_t
   name: string
   body: exp_t
 
   constructor (
-    env: env_t,
+    ctx: ctx_t,
     name: string,
     body: exp_t,
   ) {
     super ()
-    this.env = env
+    this.ctx = ctx
     this.name = name
     this.body = body
   }
@@ -90,7 +138,7 @@ abstract class exp_t {
   ): boolean
 
   // TODO
-  // abstract eval (env: env_t): value_t
+  // abstract eval (ctx: ctx_t): value_t
 }
 
 // <expr> ::=

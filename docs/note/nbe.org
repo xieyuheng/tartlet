@@ -300,6 +300,23 @@
 
 *** 7.3 Definitions and Dependent Types
 
+    - The simply-typed language
+      of Typed Normalization by Evaluation
+      could store definitions separately
+      from the context and the environment,
+      constructing each as needed for type checking or evaluation.
+
+      In a dependently-typed language, however,
+      type checking can invoke evaluation.
+      This means that the context needs to distinguish between
+
+      - free variables that result from from binding forms
+        such as λ, Π, and Σ,
+        for which a value is not available during type checking,
+
+      - and free variables that result from from definitions,
+        which do have values during type checking.
+
 ***** 7.3.1 The Evaluator
 
 ***** 7.3.2 Eliminators
