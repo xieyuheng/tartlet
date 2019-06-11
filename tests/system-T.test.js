@@ -35,12 +35,12 @@ test ("freshen", t => {
   t.pass ()
 })
 
-test ("exp.synth", t => {
+test ("exp.infer", t => {
   let ctx = new cc.ctx_t ()
     .ext ("x", NAT)
 
   t.deepEqual (
-    VAR ("x") .synth (ctx),
+    VAR ("x") .infer (ctx),
     new ok_t (NAT),
   )
 })

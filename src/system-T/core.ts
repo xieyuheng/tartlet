@@ -149,9 +149,9 @@ abstract class exp_t {
   abstract eq (that: exp_t): boolean
   abstract eval (env: env_t): value_t
 
-  synth (ctx: ctx_t): result_t <type_t, string> {
+  infer (ctx: ctx_t): result_t <type_t, string> {
     return new err_t (
-      `synth is not implemented for type: ${this.constructor.name}`
+      `infer is not implemented for type: ${this.constructor.name}`
     )
   }
 
@@ -162,7 +162,7 @@ abstract class exp_t {
     ctx :- e <= A
   */
   check (t: type_t, ctx: ctx_t = new ctx_t ()): result_t <"ok", string> {
-    return this.synth (ctx) .bind (t2 => {
+    return this.infer (ctx) .bind (t2 => {
       if (t2.eq (t)) {
         return result_t.pure ("ok")
       } else {
@@ -246,7 +246,7 @@ class var_t extends exp_t {
     ctx.find (x, A) :- x => A
   */
 
-  synth (ctx: ctx_t): result_t <type_t, string> {
+  infer (ctx: ctx_t): result_t <type_t, string> {
     return ctx.find (this.name) .match ({
       some: t => result_t.pure (t),
       none: () => new err_t (
@@ -315,8 +315,8 @@ class apply_t extends exp_t {
     ctx :- (e1 e2) => B
   */
 
-  synth (ctx: ctx_t): result_t <type_t, string> {
-    return this.rator.synth (ctx)
+  infer (ctx: ctx_t): result_t <type_t, string> {
+    return this.rator.infer (ctx)
       .bind (rator_type => {
         if (rator_type instanceof arrow_t) {
           return this.rand.check (rator_type.arg, ctx)
@@ -390,7 +390,7 @@ class module_t {
   }
 
   run (exp: exp_t): result_t <exp_t, string> {
-    return exp.synth (this.ctx) .match ({
+    return exp.infer (this.ctx) .match ({
       ok: t => {
         let normal_exp = read_back (
           this.used_names, t, exp.eval (this.env)
@@ -401,7 +401,7 @@ class module_t {
       },
       err: error => {
         return new err_t (
-          `type synth fail for name: ${name}, error: ${error}`
+          `type infer fail for name: ${name}, error: ${error}`
         )
       },
     })
@@ -616,7 +616,7 @@ class the_t extends exp_t {
     -----------------
     ctx :- e: A => A
   */
-  synth (ctx: ctx_t): result_t <type_t, string> {
+  infer (ctx: ctx_t): result_t <type_t, string> {
     return result_t.pure (this.t)
   }
 }
@@ -710,8 +710,8 @@ class rec_nat_t extends exp_t {
     ctx :- rec [A] (n, b, s) => A
   */
 
-  synth (ctx: ctx_t): result_t <type_t, string> {
-    return this.target.synth (ctx)
+  infer (ctx: ctx_t): result_t <type_t, string> {
+    return this.target.infer (ctx)
       .bind (target_type => {
         if (target_type.eq (new nat_t ())) {
           return this.base.check (this.t, ctx)
