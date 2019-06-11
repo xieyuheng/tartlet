@@ -121,14 +121,14 @@ class closure_t extends value_t {
 }
 
 export
-class zero_value_t extends value_t {
+class value_zero_t extends value_t {
   constructor () {
     super ()
   }
 }
 
 export
-class add1_value_t extends value_t {
+class value_add1_t extends value_t {
   prev: value_t
 
   constructor (
@@ -477,9 +477,9 @@ function read_back (
   value: value_t,
 ): exp_t {
   if (t instanceof nat_t) {
-    if (value instanceof zero_value_t) {
+    if (value instanceof value_zero_t) {
       return new zero_t ()
-    } else if (value instanceof add1_value_t) {
+    } else if (value instanceof value_add1_t) {
       return new add1_t (
         read_back (
           used_names,
@@ -655,9 +655,9 @@ class rec_nat_t extends exp_t {
     base: value_t,
     step: value_t,
   ): value_t {
-    if (target instanceof zero_value_t) {
+    if (target instanceof value_zero_t) {
       return base
-    } else if (target instanceof add1_value_t) {
+    } else if (target instanceof value_add1_t) {
       return closure_t.exe (
         closure_t.exe (step, target.prev),
         rec_nat_t.exe (
@@ -745,7 +745,7 @@ class zero_t extends exp_t {
   }
 
   eval (env: env_t = new env_t ()): value_t {
-    return new zero_value_t ()
+    return new value_zero_t ()
   }
 
   /*
@@ -779,7 +779,7 @@ class add1_t extends exp_t {
   }
 
   eval (env: env_t = new env_t ()): value_t {
-    return new add1_value_t (
+    return new value_add1_t (
       this.prev.eval (env)
     )
   }

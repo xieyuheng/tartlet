@@ -3,6 +3,7 @@ import * as ut from "cicada-lang/lib/util"
 import { result_t, ok_t, err_t } from "cicada-lang/lib/result"
 import { option_t, some_t, none_t } from "cicada-lang/lib/option"
 
+// TODO
 export
 class env_t {
   map: Map <string, value_t>
@@ -79,11 +80,17 @@ abstract class exp_t {
   exp_tag: "exp_t" = "exp_t"
 
   // TODO
+  /**
+   * Equivalence after consistently replacing bound variables.
+   */
   // abstract alpha_eq (
   //   that: exp_t,
   //   this_map: Map <string, string>,
   //   that_map: Map <string, string>,
   // ): boolean
+
+  // TODO
+  // abstract eval (env: env_t): value_t
 }
 
 // <expr> ::=

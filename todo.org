@@ -1,2 +1,4 @@
+- `exp.alpha_eq ()`
+- fix env_t for definition_t and bind_t
 - better error report
 - `error_msg_t` for `result_t <_, error_msg_t>`
