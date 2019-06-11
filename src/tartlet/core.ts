@@ -1,4 +1,5 @@
 import assert from "assert"
+import nanoid from "nanoid"
 import * as ut from "cicada-lang/lib/util"
 import { result_t, ok_t, err_t } from "cicada-lang/lib/result"
 import { option_t, some_t, none_t } from "cicada-lang/lib/option"
@@ -79,15 +80,14 @@ export
 abstract class exp_t {
   exp_tag: "exp_t" = "exp_t"
 
-  // TODO
   /**
    * Equivalence after consistently replacing bound variables.
    */
-  // abstract alpha_eq (
-  //   that: exp_t,
-  //   this_map: Map <string, string>,
-  //   that_map: Map <string, string>,
-  // ): boolean
+  abstract alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean
 
   // TODO
   // abstract eval (env: env_t): value_t
@@ -126,38 +126,98 @@ class exp_var_t extends exp_t {
     super ()
     this.name = name
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_var_t) {
+      let this_sym = this_map.get (this.name)
+      let that_sym = that_map.get (that.name)
+      if (this_sym === undefined &&
+          that_sym === undefined) {
+        return this.name === that.name
+      } else if (this_sym !== undefined &&
+                 that_sym !== undefined) {
+        return this_sym === that_sym
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
+  }
 }
 
 export
 class exp_pi_t extends exp_t {
-  v: string
+  name: string
   arg_type: exp_t
   ret_type: exp_t
 
   constructor (
-    v: string,
+    name: string,
     arg_type: exp_t,
     ret_type: exp_t,
   ) {
     super ()
-    this.v = v
+    this.name = name
     this.arg_type = arg_type
     this.ret_type = ret_type
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_pi_t) {
+      let sym = nanoid ()
+      return this.arg_type.alpha_eq (
+        that.arg_type,
+        this_map,
+        that_map,
+      ) && this.ret_type.alpha_eq (
+        that.ret_type,
+        this_map.set (this.name, sym),
+        that_map.set (this.name, sym),
+      )
+    } else {
+      return false
+    }
   }
 }
 
 export
 class exp_lambda_t extends exp_t {
-  v: string
+  name: string
   body: exp_t
 
   constructor (
-    v: string,
+    name: string,
     body: exp_t,
   ) {
     super ()
-    this.v = v
+    this.name = name
     this.body = body
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_lambda_t) {
+      let sym = nanoid ()
+      return this.body.alpha_eq (
+        that.body,
+        this_map.set (this.name, sym),
+        that_map.set (this.name, sym),
+      )
+    } else {
+      return false
+    }
   }
 }
 
@@ -174,23 +234,57 @@ class exp_apply_t extends exp_t {
     this.rator = rator
     this.rand = rand
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_apply_t) {
+      return this.rator.alpha_eq (that.rator, this_map, that_map)
+        && this.rand.alpha_eq (that.rand, this_map, that_map)
+    } else {
+      return false
+    }
+  }
 }
 
 export
 class exp_sigma_t extends exp_t {
-  v: string
+  name: string
   car_type: exp_t
   cdr_type: exp_t
 
   constructor (
-    v: string,
+    name: string,
     car_type: exp_t,
     cdr_type: exp_t,
   ) {
     super ()
-    this.v = v
+    this.name = name
     this.car_type = car_type
     this.cdr_type = cdr_type
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_sigma_t) {
+      let sym = nanoid ()
+      return this.car_type.alpha_eq (
+        that.car_type,
+        this_map,
+        that_map,
+      ) && this.cdr_type.alpha_eq (
+        that.cdr_type,
+        this_map.set (this.name, sym),
+        that_map.set (this.name, sym),
+      )
+    } else {
+      return false
+    }
   }
 }
 
@@ -207,6 +301,19 @@ class exp_cons_t extends exp_t {
     this.car = car
     this.cdr = cdr
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_cons_t) {
+      return this.car.alpha_eq (that.car, this_map, that_map)
+        && this.cdr.alpha_eq (that.cdr, this_map, that_map)
+    } else {
+      return false
+    }
+  }
 }
 
 export
@@ -218,6 +325,18 @@ class exp_car_t extends exp_t {
   ) {
     super ()
     this.pair = pair
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_car_t) {
+      return this.pair.alpha_eq (that.pair, this_map, that_map)
+    } else {
+      return false
+    }
   }
 }
 
@@ -231,6 +350,18 @@ class exp_cdr_t extends exp_t {
     super ()
     this.pair = pair
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_cdr_t) {
+      return this.pair.alpha_eq (that.pair, this_map, that_map)
+    } else {
+      return false
+    }
+  }
 }
 
 export
@@ -238,12 +369,36 @@ class exp_nat_t extends exp_t {
   constructor () {
     super ()
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_nat_t) {
+      return true
+    } else {
+      return false
+    }
+  }
 }
 
 export
 class exp_zero_t extends exp_t {
   constructor () {
     super ()
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_zero_t) {
+      return true
+    } else {
+      return false
+    }
   }
 }
 
@@ -256,6 +411,22 @@ class exp_add1_t extends exp_t {
   ) {
     super ()
     this.prev = prev
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_add1_t) {
+      return this.prev.alpha_eq (
+        that.prev,
+        this_map,
+        that_map,
+      )
+    } else {
+      return false
+    }
   }
 }
 
@@ -278,6 +449,21 @@ class exp_ind_nat_t extends exp_t {
     this.base = base
     this.step = step
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_ind_nat_t) {
+      return this.t.alpha_eq (that.t, this_map, that_map)
+        && this.target.alpha_eq (that.target, this_map, that_map)
+        && this.base.alpha_eq (that.base, this_map, that_map)
+        && this.step.alpha_eq (that.step, this_map, that_map)
+    } else {
+      return false
+    }
+  }
 }
 
 export
@@ -296,12 +482,38 @@ class exp_eqv_t extends exp_t {
     this.from = from
     this.to = to
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_eqv_t) {
+      return this.t.alpha_eq (that.t, this_map, that_map)
+        && this.from.alpha_eq (that.from, this_map, that_map)
+        && this.to.alpha_eq (that.to, this_map, that_map)
+    } else {
+      return false
+    }
+  }
 }
 
 export
 class exp_same_t extends exp_t {
   constructor () {
     super ()
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_same_t) {
+      return true
+    } else {
+      return false
+    }
   }
 }
 
@@ -321,12 +533,36 @@ class exp_replace_t extends exp_t {
     this.from = from
     this.to = to
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_replace_t) {
+      return true
+    } else {
+      return false
+    }
+  }
 }
 
 export
 class exp_trivial_t extends exp_t {
   constructor () {
     super ()
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_trivial_t) {
+      return true
+    } else {
+      return false
+    }
   }
 }
 
@@ -335,12 +571,36 @@ class exp_sole_t extends exp_t {
   constructor () {
     super ()
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_sole_t) {
+      return true
+    } else {
+      return false
+    }
+  }
 }
 
 export
 class exp_absurd_t extends exp_t {
   constructor () {
     super ()
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_absurd_t) {
+      return true
+    } else {
+      return false
+    }
   }
 }
 
@@ -349,12 +609,36 @@ class exp_ind_absurd_t extends exp_t {
   constructor () {
     super ()
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_ind_absurd_t) {
+      return true
+    } else {
+      return false
+    }
+  }
 }
 
 export
 class exp_atom_t extends exp_t {
   constructor () {
     super ()
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_atom_t) {
+      return true
+    } else {
+      return false
+    }
   }
 }
 
@@ -368,12 +652,36 @@ class exp_quote_t extends exp_t {
     super ()
     this.sym = sym
   }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_quote_t) {
+      return this.sym === that.sym
+    } else {
+      return false
+    }
+  }
 }
 
 export
 class exp_universe_t extends exp_t {
   constructor () {
     super ()
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_universe_t) {
+      return true
+    } else {
+      return false
+    }
   }
 }
 
@@ -389,6 +697,26 @@ class exp_the_t extends exp_t {
     super ()
     this.t = t
     this.value = value
+  }
+
+  alpha_eq (
+    that: exp_t,
+    this_map: Map <string, string>,
+    that_map: Map <string, string>,
+  ): boolean {
+    if (that instanceof exp_the_t) {
+      if (this.t.alpha_eq (that.t, this_map, that_map) &&
+          this.value.alpha_eq (that.value, this_map, that_map)) {
+        return true
+      } else if (this.t instanceof exp_absurd_t &&
+                 that.t instanceof exp_absurd_t) {
+        return true
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
   }
 }
 
