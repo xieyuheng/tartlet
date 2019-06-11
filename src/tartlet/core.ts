@@ -1,0 +1,344 @@
+import assert from "assert"
+import * as ut from "cicada-lang/lib/util"
+import { result_t, ok_t, err_t } from "cicada-lang/lib/result"
+import { option_t, some_t, none_t } from "cicada-lang/lib/option"
+
+export
+class env_t {
+  map: Map <string, value_t>
+
+  constructor (
+    map: Map <string, value_t> = new Map ()
+  ) {
+    this.map = map
+  }
+
+  find (name: string): option_t <value_t> {
+    let value = this.map.get (name)
+    if (value !== undefined) {
+      return new some_t (value)
+    } else {
+      return new none_t ()
+    }
+  }
+
+  copy (): env_t {
+    return new env_t (new Map (this.map))
+  }
+
+  ext (name: string, value: value_t): env_t {
+    return new env_t (
+      new Map (this.map)
+        .set (name, value)
+    )
+  }
+}
+
+export
+abstract class exp_t {
+  exp_tag: "exp_t" = "exp_t"
+}
+
+// <expr> ::=
+//   <id>
+//   | ( Pi ( ( <id> <expr> ) ) <expr> )
+//   | ( lambda ( <id> ) <expr> )
+//   | ( <expr> <expr> )
+//   | ( Sigma ( ( <id> <expr> ) ) <expr> )
+//   | ( cons <expr> <expr> )
+//   | ( car <expr> )
+//   | ( cdr <expr> )
+//   | Nat
+//   | zero
+//   | ( add1 <expr> )
+//   | ( ind-Nat <expr> <expr> <expr> <expr> )
+//   | ( = <expr> <expr> <expr> )
+//   | same
+//   | ( replace <expr> <expr> <expr> )
+//   | Trivial
+//   | sole
+//   | Absurd
+//   | ind-Absurd
+//   | Atom
+//   | ( quote <id> )
+//   | U
+//   | ( the <expr> <expr> )
+
+export
+class exp_var_t extends exp_t {
+  name: string
+
+  constructor (name: string) {
+    super ()
+    this.name = name
+  }
+}
+
+export
+class exp_pi_t extends exp_t {
+  v: string
+  arg_type: exp_t
+  ret_type: exp_t
+
+  constructor (
+    v: string,
+    arg_type: exp_t,
+    ret_type: exp_t,
+  ) {
+    super ()
+    this.v = v
+    this.arg_type = arg_type
+    this.ret_type = ret_type
+  }
+}
+
+export
+class exp_lambda_t extends exp_t {
+  v: string
+  body: exp_t
+
+  constructor (
+    v: string,
+    body: exp_t,
+  ) {
+    super ()
+    this.v = v
+    this.body = body
+  }
+}
+
+export
+class exp_apply_t extends exp_t {
+  rator: exp_t
+  rand: exp_t
+
+  constructor (
+    rator: exp_t,
+    rand: exp_t,
+  ) {
+    super ()
+    this.rator = rator
+    this.rand = rand
+  }
+}
+
+export
+class exp_sigma_t extends exp_t {
+  v: string
+  car_type: exp_t
+  cdr_type: exp_t
+
+  constructor (
+    v: string,
+    car_type: exp_t,
+    cdr_type: exp_t,
+  ) {
+    super ()
+    this.v = v
+    this.car_type = car_type
+    this.cdr_type = cdr_type
+  }
+}
+
+export
+class exp_cons_t extends exp_t {
+  car: exp_t
+  cdr: exp_t
+
+  constructor (
+    car: exp_t,
+    cdr: exp_t,
+  ) {
+    super ()
+    this.car = car
+    this.cdr = cdr
+  }
+}
+
+export
+class exp_car_t extends exp_t {
+  pair: exp_t
+
+  constructor (
+    pair: exp_t,
+  ) {
+    super ()
+    this.pair = pair
+  }
+}
+
+export
+class exp_cdr_t extends exp_t {
+  pair: exp_t
+
+  constructor (
+    pair: exp_t,
+  ) {
+    super ()
+    this.pair = pair
+  }
+}
+
+export
+class exp_nat_t extends exp_t {
+  constructor () {
+    super ()
+  }
+}
+
+export
+class exp_zero_t extends exp_t {
+  constructor () {
+    super ()
+  }
+}
+
+export
+class exp_add1_t extends exp_t {
+  prev: exp_t
+
+  constructor (
+    prev: exp_t,
+  ) {
+    super ()
+    this.prev = prev
+  }
+}
+
+export
+class exp_ind_nat_t extends exp_t {
+  t: exp_t
+  target: exp_t
+  base: exp_t
+  step: exp_t
+
+  constructor (
+    t: exp_t,
+    target: exp_t,
+    base: exp_t,
+    step: exp_t,
+  ) {
+    super ()
+    this.t = t
+    this.target = target
+    this.base = base
+    this.step = step
+  }
+}
+
+export
+class exp_eqv_t extends exp_t {
+  t: exp_t
+  from: exp_t
+  to: exp_t
+
+  constructor (
+    t: exp_t,
+    from: exp_t,
+    to: exp_t,
+  ) {
+    super ()
+    this.t = t
+    this.from = from
+    this.to = to
+  }
+}
+
+export
+class exp_same_t extends exp_t {
+  constructor () {
+    super ()
+  }
+}
+
+export
+class exp_replace_t extends exp_t {
+  t: exp_t
+  from: exp_t
+  to: exp_t
+
+  constructor (
+    t: exp_t,
+    from: exp_t,
+    to: exp_t,
+  ) {
+    super ()
+    this.t = t
+    this.from = from
+    this.to = to
+  }
+}
+
+export
+class exp_trivial_t extends exp_t {
+  constructor () {
+    super ()
+  }
+}
+
+export
+class exp_sole_t extends exp_t {
+  constructor () {
+    super ()
+  }
+}
+
+export
+class exp_absurd_t extends exp_t {
+  constructor () {
+    super ()
+  }
+}
+
+export
+class exp_ind_absurd_t extends exp_t {
+  constructor () {
+    super ()
+  }
+}
+
+export
+class exp_atom_t extends exp_t {
+  constructor () {
+    super ()
+  }
+}
+
+export
+class exp_quote_t extends exp_t {
+  str: string
+
+  constructor (
+    str: string
+  ) {
+    super ()
+    this.str = str
+  }
+}
+
+export
+class exp_universe_t extends exp_t {
+  constructor () {
+    super ()
+  }
+}
+
+export
+class exp_the_t extends exp_t {
+  t: exp_t
+  value: exp_t
+
+  constructor (
+    t: exp_t,
+    value: exp_t,
+  ) {
+    super ()
+    this.t = t
+    this.value = value
+  }
+}
+
+export
+abstract class value_t {
+  value_tag: "value_t" = "value_t"
+}
