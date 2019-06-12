@@ -5,7 +5,7 @@ import { option_t, some_t, none_t } from "cicada-lang/lib/option"
 
 export
 abstract class value_t {
-  value_tag: "value_t" = "value_t"
+  value_t: "value_t" = "value_t"
 }
 
 /**
@@ -144,7 +144,7 @@ class the_neutral_t extends value_t {
 
 export
 abstract class exp_t {
-  exp_tag: "exp_t" = "exp_t"
+  exp_t: "exp_t" = "exp_t"
 
   abstract eq (that: exp_t): boolean
   abstract eval (env: env_t): value_t
@@ -421,7 +421,7 @@ function freshen (
 
 export
 abstract class neutral_t {
-  neutral_tag: "neutral_t" = "neutral_t"
+  neutral_t: "neutral_t" = "neutral_t"
 }
 
 export
@@ -551,7 +551,7 @@ function read_back_neutral (
 
 export
 abstract class type_t {
-  type_tag: "type_t" = "type_t"
+  type_t: "type_t" = "type_t"
   abstract eq (that: type_t): boolean
 }
 

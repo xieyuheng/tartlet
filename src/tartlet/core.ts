@@ -6,7 +6,7 @@ import { option_t, some_t, none_t } from "cicada-lang/lib/option"
 
 export
 abstract class den_t {
-  den_tag: "den_t" = "den_t"
+  den_t: "den_t" = "den_t"
 }
 
 export
@@ -83,6 +83,10 @@ class ctx_t {
     )
   }
 
+  names (): Set <string> {
+    return new Set (this.map.keys ())
+  }
+
   to_env (): env_t {
     let map = new Map ()
     for (let [name, den] of this.map.entries ()) {
@@ -138,7 +142,7 @@ class env_t {
 
 export
 abstract class closure_t {
-  closure_tag: "closure_t" = "closure_t"
+  closure_t: "closure_t" = "closure_t"
 
   abstract name: string
 
@@ -190,7 +194,7 @@ class env_closure_t extends closure_t {
 
 export
 abstract class exp_t {
-  exp_tag: "exp_t" = "exp_t"
+  exp_t: "exp_t" = "exp_t"
 
   /**
    * Equivalence after consistently replacing bound variables.
@@ -1154,9 +1158,29 @@ class exp_the_t extends exp_t {
 
 export
 abstract class value_t {
-  value_tag: "value_t" = "value_t"
+  value_t: "value_t" = "value_t"
 
-  // abstract read_back (ctx: ctx_t, t: value_t): exp_t
+  // TODO
+  abstract read_back (ctx: ctx_t, t: value_t): exp_t
+}
+
+export
+abstract class type_t {
+  type_t: "type_t" = "type_t"
+
+  // TODO
+  abstract read_back (ctx: ctx_t, value: value_t): exp_t
+}
+
+export
+function freshen (
+  used_names: Set <string>,
+  name: string,
+): string {
+  while (used_names.has (name)) {
+    name += "*"
+  }
+  return name
 }
 
 export
@@ -1172,6 +1196,14 @@ class value_pi_t extends value_t {
     this.arg_type = arg_type
     this.ret_type = ret_type
   }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    let fresh_name = freshen (
+      ctx.names (),
+      this.ret_type.name,
+    )
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1183,6 +1215,10 @@ class value_lambda_t extends value_t {
   ) {
     super ()
     this.body = body
+  }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
   }
 }
 
@@ -1199,6 +1235,10 @@ class value_sigma_t extends value_t {
     this.car_type = car_type
     this.cdr_type = cdr_type
   }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1214,6 +1254,10 @@ class value_pair_t extends value_t {
     this.car = car
     this.cdr = cdr
   }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1222,6 +1266,10 @@ class value_nat_t extends value_t {
   ) {
     super ()
   }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1229,6 +1277,10 @@ class value_zero_t extends value_t {
   constructor (
   ) {
     super ()
+  }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return new exp_zero_t ()
   }
 }
 
@@ -1241,6 +1293,12 @@ class value_add1_t extends value_t {
   ) {
     super ()
     this.prev = prev
+  }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return new exp_add1_t (
+      this.prev.read_back (ctx, t)
+    )
   }
 }
 
@@ -1260,6 +1318,10 @@ class value_eqv_t extends value_t {
     this.from = from
     this.to = to
   }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1267,6 +1329,10 @@ class value_same_t extends value_t {
   constructor (
   ) {
     super ()
+  }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
   }
 }
 
@@ -1276,6 +1342,10 @@ class value_trivial_t extends value_t {
   ) {
     super ()
   }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1283,6 +1353,10 @@ class value_sole_t extends value_t {
   constructor (
   ) {
     super ()
+  }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
   }
 }
 
@@ -1292,6 +1366,10 @@ class value_absurd_t extends value_t {
   ) {
     super ()
   }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1299,6 +1377,10 @@ class value_atom_t extends value_t {
   constructor (
   ) {
     super ()
+  }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
   }
 }
 
@@ -1312,6 +1394,10 @@ class value_quote_t extends value_t {
     super ()
     this.sym = sym
   }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1319,6 +1405,10 @@ class value_universe_t extends value_t {
   constructor (
   ) {
     super ()
+  }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
   }
 }
 
@@ -1335,11 +1425,15 @@ class the_neutral_t extends value_t {
     this.t = t
     this.neutral = neutral
   }
+
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
 abstract class neutral_t {
-  neutral_tag: "neutral_t" = "neutral_t"
+  neutral_t: "neutral_t" = "neutral_t"
 }
 
 export
