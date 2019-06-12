@@ -1155,6 +1155,8 @@ class exp_the_t extends exp_t {
 export
 abstract class value_t {
   value_tag: "value_t" = "value_t"
+
+  // abstract read_back (ctx: ctx_t, t: value_t): exp_t
 }
 
 export
