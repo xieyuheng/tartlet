@@ -1159,17 +1159,15 @@ class exp_the_t extends exp_t {
 export
 abstract class value_t {
   value_t: "value_t" = "value_t"
-
-  // TODO
-  abstract read_back (ctx: ctx_t, t: value_t): exp_t
 }
 
 export
-abstract class type_t {
+abstract class type_t extends value_t {
   type_t: "type_t" = "type_t"
 
   // TODO
-  abstract read_back (ctx: ctx_t, value: value_t): exp_t
+  // abstract read_back (ctx: ctx_t, value: value_t): exp_t
+  // abstract read_back_type (ctx: ctx_t): exp_t
 }
 
 export
@@ -1184,7 +1182,7 @@ function freshen (
 }
 
 export
-class value_pi_t extends value_t {
+class value_pi_t extends type_t {
   arg_type: value_t
   ret_type: closure_t
 
@@ -1195,14 +1193,6 @@ class value_pi_t extends value_t {
     super ()
     this.arg_type = arg_type
     this.ret_type = ret_type
-  }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    let fresh_name = freshen (
-      ctx.names (),
-      this.ret_type.name,
-    )
-    return ut.TODO ()
   }
 }
 
@@ -1216,14 +1206,10 @@ class value_lambda_t extends value_t {
     super ()
     this.body = body
   }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
-  }
 }
 
 export
-class value_sigma_t extends value_t {
+class value_sigma_t extends type_t {
   car_type: value_t
   cdr_type: closure_t
 
@@ -1234,10 +1220,6 @@ class value_sigma_t extends value_t {
     super ()
     this.car_type = car_type
     this.cdr_type = cdr_type
-  }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
   }
 }
 
@@ -1254,21 +1236,13 @@ class value_pair_t extends value_t {
     this.car = car
     this.cdr = cdr
   }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
-  }
 }
 
 export
-class value_nat_t extends value_t {
+class value_nat_t extends type_t {
   constructor (
   ) {
     super ()
-  }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
   }
 }
 
@@ -1277,10 +1251,6 @@ class value_zero_t extends value_t {
   constructor (
   ) {
     super ()
-  }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return new exp_zero_t ()
   }
 }
 
@@ -1294,16 +1264,10 @@ class value_add1_t extends value_t {
     super ()
     this.prev = prev
   }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return new exp_add1_t (
-      this.prev.read_back (ctx, t)
-    )
-  }
 }
 
 export
-class value_eqv_t extends value_t {
+class value_eqv_t extends type_t {
   t: value_t
   from: value_t
   to: value_t
@@ -1318,10 +1282,6 @@ class value_eqv_t extends value_t {
     this.from = from
     this.to = to
   }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
-  }
 }
 
 export
@@ -1330,21 +1290,13 @@ class value_same_t extends value_t {
   ) {
     super ()
   }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
-  }
 }
 
 export
-class value_trivial_t extends value_t {
+class value_trivial_t extends type_t {
   constructor (
   ) {
     super ()
-  }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
   }
 }
 
@@ -1354,33 +1306,21 @@ class value_sole_t extends value_t {
   ) {
     super ()
   }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
-  }
 }
 
 export
-class value_absurd_t extends value_t {
+class value_absurd_t extends type_t {
   constructor (
   ) {
     super ()
   }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
-  }
 }
 
 export
-class value_atom_t extends value_t {
+class value_atom_t extends type_t {
   constructor (
   ) {
     super ()
-  }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
   }
 }
 
@@ -1394,21 +1334,13 @@ class value_quote_t extends value_t {
     super ()
     this.sym = sym
   }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
-  }
 }
 
 export
-class value_universe_t extends value_t {
+class value_universe_t extends type_t {
   constructor (
   ) {
     super ()
-  }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
   }
 }
 
@@ -1424,10 +1356,6 @@ class the_neutral_t extends value_t {
     super ()
     this.t = t
     this.neutral = neutral
-  }
-
-  read_back (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
   }
 }
 
