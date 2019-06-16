@@ -328,6 +328,16 @@
 
 ***** 7.3.3 Reading Back
 
+      - Just as in "Typed Normalization by Evaluation",
+        reading back from values into syntax is accomplished via
+        two mutually-recursive procedures: read-back-norm and read-back-neutral.
+
+      - Convert a neutral expression into its representation as syntax.
+        The only case that is not immediately the same as the others is that for ind-Absurd;
+        it adds a type annotation to its target that,
+        together with a special case in α-equiv?,
+        causes all neutral inhabitants of Absurd to be identified with one another.
+
 *** 7.4 Type Checking
 
 ***** 7.4.1 The Type Checker
