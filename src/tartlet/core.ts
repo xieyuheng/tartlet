@@ -581,6 +581,35 @@ class exp_car_t extends exp_t {
       throw new Error (`exe wrong type of value`)
     }
   }
+
+  /*
+    ctx: p => SIGMA (x, A, D)
+    ----------------
+    ctx :- CAR (p) => A
+  */
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return this.pair
+      .infer (ctx)
+      .bind (the => {
+        if (the instanceof exp_the_t &&
+            the.t instanceof exp_sigma_t) {
+          let sigma = the.t.eval (ctx.to_env ())
+          if (sigma instanceof value_sigma_t) {
+            return new ok_t (
+              new exp_the_t (
+                sigma.car_type.read_back (
+                  ctx, new value_universe_t ()),
+                new exp_car_t (the.value)))
+          } else {
+            let msg = new error_message_t ("no sigma value")
+            return new err_t (msg)
+          }
+        } else {
+          let msg = new error_message_t ("no sigma exp")
+          return new err_t (msg)
+        }
+      })
+  }
 }
 
 export
@@ -626,6 +655,37 @@ class exp_cdr_t extends exp_t {
       throw new Error (`exe wrong type of value`)
     }
   }
+
+  /*
+    ctx: p => SIGMA (x, A, D)
+    ----------------
+    ctx :- CDR (p) => D .subst (x, CAR (p))
+  */
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return this.pair
+      .infer (ctx)
+      .bind (the => {
+        if (the instanceof exp_the_t &&
+            the.t instanceof exp_sigma_t) {
+          let sigma = the.t.eval (ctx.to_env ())
+          if (sigma instanceof value_sigma_t) {
+            let pair = the.value.eval (ctx.to_env ())
+            let car = exp_car_t.exe (pair)
+            return new ok_t (
+              new exp_the_t (
+                sigma.cdr_type.apply (car) .read_back (
+                  ctx, new value_universe_t ()),
+                new exp_car_t (the.value)))
+          } else {
+            let msg = new error_message_t ("no sigma value")
+            return new err_t (msg)
+          }
+        } else {
+          let msg = new error_message_t ("no sigma exp")
+          return new err_t (msg)
+        }
+      })
+  }
 }
 
 export
@@ -648,6 +708,17 @@ class exp_nat_t extends exp_t {
 
   eval (env: env_t): value_t {
     return new value_nat_t ()
+  }
+
+  /*
+    -----------------
+    ctx :- NAT => UNIVERSE
+  */
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return new ok_t (
+      new exp_the_t (
+        new exp_universe_t (),
+        new exp_nat_t ()))
   }
 }
 
@@ -792,6 +863,18 @@ class exp_ind_nat_t extends exp_t {
     } else {
       throw new Error (`exe wrong type of value`)
     }
+  }
+
+  /*
+    ctx :- target <= NAT
+    ctx :- motive <= PI (NAT, LAMBDA (_, UNIVERSE))
+    ctx :- base <= motive (ZERO)
+    ctx :- step <= TODO
+    --------------------
+    ctx :- IND_NAT (target, motive, base, step) => motive (target)
+  */
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return ut.TODO ()
   }
 }
 
