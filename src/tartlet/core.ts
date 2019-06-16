@@ -1160,7 +1160,7 @@ export
 abstract class value_t {
   value_t: "value_t" = "value_t"
 
-  abstract read_back_normal (ctx: ctx_t, t: value_t): exp_t
+  abstract read_back (ctx: ctx_t, t: value_t): exp_t
 }
 
 export
@@ -1188,21 +1188,21 @@ class value_pi_t extends value_t {
     this.ret_type = ret_type
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     let fresh_name = freshen (
       ctx.names (),
       this.ret_type.name,
     )
     return new exp_sigma_t (
       fresh_name,
-      this.arg_type.read_back_normal (
+      this.arg_type.read_back (
         ctx, new value_universe_t (),
       ),
       this.ret_type.apply (
         new the_neutral_t (
           this.arg_type, new neutral_var_t (fresh_name),
         )
-      ) .read_back_normal (
+      ) .read_back (
         ctx.ext (fresh_name, new bind_t (this.arg_type)),
         new value_universe_t (),
       )
@@ -1221,7 +1221,7 @@ class value_lambda_t extends value_t {
     this.body = body
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     if (t instanceof value_pi_t) {
       let fresh_name = freshen (
         ctx.names (),
@@ -1233,7 +1233,7 @@ class value_lambda_t extends value_t {
       )
       return new exp_lambda_t (
         fresh_name,
-        exp_apply_t.exe (this, arg) .read_back_normal (
+        exp_apply_t.exe (this, arg) .read_back (
           ctx.ext (fresh_name, new bind_t (t.arg_type)),
           t.ret_type.apply (arg),
         )
@@ -1260,21 +1260,21 @@ class value_sigma_t extends value_t {
     this.cdr_type = cdr_type
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     let fresh_name = freshen (
       ctx.names (),
       this.cdr_type.name,
     )
     return new exp_sigma_t (
       fresh_name,
-      this.car_type.read_back_normal (
+      this.car_type.read_back (
         ctx, new value_universe_t (),
       ),
       this.cdr_type.apply (
         new the_neutral_t (
           this.car_type, new neutral_var_t (fresh_name),
         )
-      ) .read_back_normal (
+      ) .read_back (
         ctx.ext (fresh_name, new bind_t (this.car_type)),
         new value_universe_t (),
       )
@@ -1296,7 +1296,7 @@ class value_pair_t extends value_t {
     this.cdr = cdr
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     if (t instanceof value_sigma_t) {
       let car = exp_car_t.exe (this)
       // QUESTION
@@ -1304,8 +1304,8 @@ class value_pair_t extends value_t {
       // uses `the_car` instead of `car`
       let cdr = exp_cdr_t.exe (this)
       return new exp_cons_t (
-        car.read_back_normal (ctx, t.car_type),
-        cdr.read_back_normal (ctx, t.cdr_type.apply (car)),
+        car.read_back (ctx, t.car_type),
+        cdr.read_back (ctx, t.cdr_type.apply (car)),
       )
     } else {
       throw new Error (
@@ -1322,7 +1322,7 @@ class value_nat_t extends value_t {
     super ()
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_nat_t ()
   }
 }
@@ -1334,7 +1334,7 @@ class value_zero_t extends value_t {
     super ()
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_zero_t ()
   }
 }
@@ -1350,9 +1350,9 @@ class value_add1_t extends value_t {
     this.prev = prev
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_add1_t (
-      this.prev.read_back_normal (ctx, t)
+      this.prev.read_back (ctx, t)
     )
   }
 }
@@ -1374,11 +1374,11 @@ class value_eqv_t extends value_t {
     this.to = to
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_eqv_t (
-      this.t.read_back_normal (ctx, new value_universe_t ()),
-      this.from.read_back_normal (ctx, this.t),
-      this.to.read_back_normal (ctx, this.t),
+      this.t.read_back (ctx, new value_universe_t ()),
+      this.from.read_back (ctx, this.t),
+      this.to.read_back (ctx, this.t),
     )
   }
 }
@@ -1390,7 +1390,7 @@ class value_same_t extends value_t {
     super ()
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_same_t ()
   }
 }
@@ -1402,7 +1402,7 @@ class value_trivial_t extends value_t {
     super ()
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_trivial_t ()
   }
 }
@@ -1414,7 +1414,7 @@ class value_sole_t extends value_t {
     super ()
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_sole_t ()
   }
 }
@@ -1426,7 +1426,7 @@ class value_absurd_t extends value_t {
     super ()
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_absurd_t ()
   }
 }
@@ -1438,7 +1438,7 @@ class value_atom_t extends value_t {
     super ()
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_atom_t ()
   }
 }
@@ -1454,7 +1454,7 @@ class value_quote_t extends value_t {
     this.sym = sym
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_quote_t (this.sym)
   }
 }
@@ -1466,7 +1466,7 @@ class value_universe_t extends value_t {
     super ()
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     return new exp_universe_t ()
   }
 }
@@ -1485,7 +1485,7 @@ class the_neutral_t extends value_t {
     this.neutral = neutral
   }
 
-  read_back_normal (ctx: ctx_t, t: value_t): exp_t {
+  read_back (ctx: ctx_t, t: value_t): exp_t {
     if (t instanceof value_absurd_t) {
       return new exp_the_t (
         new exp_absurd_t (),
@@ -1516,7 +1516,7 @@ class neutral_var_t extends neutral_t {
   }
 
   read_back_neutral (ctx: ctx_t): exp_t {
-    return ut.TODO ()
+    return new exp_var_t (this.name)
   }
 }
 
@@ -1535,7 +1535,10 @@ class neutral_apply_t extends neutral_t {
   }
 
   read_back_neutral (ctx: ctx_t): exp_t {
-    return ut.TODO ()
+    return new exp_apply_t (
+      this.fun.read_back_neutral (ctx),
+      this.arg.read_back_the_value (ctx),
+    )
   }
 }
 
@@ -1551,7 +1554,7 @@ class neutral_car_t extends neutral_t {
   }
 
   read_back_neutral (ctx: ctx_t): exp_t {
-    return ut.TODO ()
+    return new exp_car_t (this.pair.read_back_neutral (ctx))
   }
 }
 
@@ -1567,7 +1570,7 @@ class neutral_cdr_t extends neutral_t {
   }
 
   read_back_neutral (ctx: ctx_t): exp_t {
-    return ut.TODO ()
+    return new exp_cdr_t (this.pair.read_back_neutral (ctx))
   }
 }
 
@@ -1592,7 +1595,12 @@ class neutral_ind_nat_t extends neutral_t {
   }
 
   read_back_neutral (ctx: ctx_t): exp_t {
-    return ut.TODO ()
+    return new exp_ind_nat_t (
+      this.target.read_back_neutral (ctx),
+      this.motive.read_back_the_value (ctx),
+      this.base.read_back_the_value (ctx),
+      this.step.read_back_the_value (ctx),
+    )
   }
 }
 
@@ -1614,7 +1622,11 @@ class neutral_replace_t extends neutral_t {
   }
 
   read_back_neutral (ctx: ctx_t): exp_t {
-    return ut.TODO ()
+    return new exp_replace_t (
+      this.target.read_back_neutral (ctx),
+      this.motive.read_back_the_value (ctx),
+      this.base.read_back_the_value (ctx),
+    )
   }
 }
 
@@ -1633,7 +1645,13 @@ class neutral_ind_absurd_t extends neutral_t {
   }
 
   read_back_neutral (ctx: ctx_t): exp_t {
-    return ut.TODO ()
+    return new exp_ind_absurd_t (
+      new exp_the_t (
+        new exp_absurd_t (),
+        this.target.read_back_neutral (ctx),
+      ),
+      this.motive.read_back_the_value (ctx),
+    )
   }
 }
 
@@ -1648,5 +1666,9 @@ class the_value_t {
   ) {
     this.t = t
     this.value = value
+  }
+
+  read_back_the_value (ctx: ctx_t): exp_t {
+    return this.value.read_back (ctx, this.t)
   }
 }
