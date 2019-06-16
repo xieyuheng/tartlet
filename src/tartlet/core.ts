@@ -5,6 +5,15 @@ import { result_t, ok_t, err_t } from "cicada-lang/lib/result"
 import { option_t, some_t, none_t } from "cicada-lang/lib/option"
 
 export
+class error_message_t {
+  message: string
+
+  constructor (message: string) {
+    this.message = message
+  }
+}
+
+export
 abstract class den_t {
   den_t: "den_t" = "den_t"
 }
@@ -206,6 +215,14 @@ abstract class exp_t {
   ): boolean
 
   abstract eval (env: env_t): value_t
+
+
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    let msg = new error_message_t (
+      `infer is not implemented for type: ${this.constructor.name}`
+    )
+    return new err_t (msg)
+  }
 }
 
 // <expr> ::=

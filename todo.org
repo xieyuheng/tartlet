@@ -1,2 +1,1 @@
-- better error report
-- `error_msg_t` for `result_t <_, error_msg_t>`
+- better error report with `span_t` and `error_context_t`

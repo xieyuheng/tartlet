@@ -342,6 +342,14 @@
 
 ***** 7.4.1 The Type Checker
 
+      - Like Pie and many other implementations of type theory,
+        the Tartlet type checker is an elaborating type checker.
+        This means that, instead of simply indicating that an expression is well-typed,
+        it returns a version of the expression with more details inserted.
+        In other words, the language accepted by the type checker 
+        contains structures that are not understood by the normalizer, 
+        and the type checker emits expressions in that simpler language.
+
 ***** 7.4.2 Type Checking with Definitions
 
 *** 7.5 Projects
