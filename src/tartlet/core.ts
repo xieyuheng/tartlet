@@ -1189,7 +1189,24 @@ class value_pi_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    let fresh_name = freshen (
+      ctx.names (),
+      this.ret_type.name,
+    )
+    return new exp_sigma_t (
+      fresh_name,
+      this.arg_type.read_back_normal (
+        ctx, new value_universe_t (),
+      ),
+      this.ret_type.apply (
+        new the_neutral_t (
+          this.arg_type, new neutral_var_t (fresh_name),
+        )
+      ) .read_back_normal (
+        ctx.ext (fresh_name, new bind_t (this.arg_type)),
+        new value_universe_t (),
+      )
+    )
   }
 }
 
@@ -1205,7 +1222,27 @@ class value_lambda_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    if (t instanceof value_pi_t) {
+      let fresh_name = freshen (
+        ctx.names (),
+        t.ret_type.name,
+      )
+      let arg = new the_neutral_t (
+        t.arg_type,
+        new neutral_var_t (fresh_name),
+      )
+      return new exp_lambda_t (
+        fresh_name,
+        exp_apply_t.exe (this, arg) .read_back_normal (
+          ctx.ext (fresh_name, new bind_t (t.arg_type)),
+          t.ret_type.apply (arg),
+        )
+      )
+    } else {
+      throw new Error (
+        `type of lambda must be pi`
+      )
+    }
   }
 }
 
@@ -1224,7 +1261,24 @@ class value_sigma_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    let fresh_name = freshen (
+      ctx.names (),
+      this.cdr_type.name,
+    )
+    return new exp_sigma_t (
+      fresh_name,
+      this.car_type.read_back_normal (
+        ctx, new value_universe_t (),
+      ),
+      this.cdr_type.apply (
+        new the_neutral_t (
+          this.car_type, new neutral_var_t (fresh_name),
+        )
+      ) .read_back_normal (
+        ctx.ext (fresh_name, new bind_t (this.car_type)),
+        new value_universe_t (),
+      )
+    )
   }
 }
 
@@ -1243,7 +1297,21 @@ class value_pair_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    if (t instanceof value_sigma_t) {
+      let car = exp_car_t.exe (this)
+      // QUESTION
+      // in "nbe" author uses `the_value_t` as `value_t` here
+      // uses `the_car` instead of `car`
+      let cdr = exp_cdr_t.exe (this)
+      return new exp_cons_t (
+        car.read_back_normal (ctx, t.car_type),
+        cdr.read_back_normal (ctx, t.cdr_type.apply (car)),
+      )
+    } else {
+      throw new Error (
+        `type of pair must be sigma`
+      )
+    }
   }
 }
 
@@ -1267,7 +1335,7 @@ class value_zero_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    return new exp_zero_t ()
   }
 }
 
@@ -1283,7 +1351,9 @@ class value_add1_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    return new exp_add1_t (
+      this.prev.read_back_normal (ctx, t)
+    )
   }
 }
 
@@ -1305,7 +1375,11 @@ class value_eqv_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    return new exp_eqv_t (
+      this.t.read_back_normal (ctx, new value_universe_t ()),
+      this.from.read_back_normal (ctx, this.t),
+      this.to.read_back_normal (ctx, this.t),
+    )
   }
 }
 
@@ -1317,7 +1391,7 @@ class value_same_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    return new exp_same_t ()
   }
 }
 
@@ -1341,7 +1415,7 @@ class value_sole_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    return new exp_sole_t ()
   }
 }
 
@@ -1381,7 +1455,7 @@ class value_quote_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    return new exp_quote_t (this.sym)
   }
 }
 
@@ -1412,13 +1486,22 @@ class the_neutral_t extends value_t {
   }
 
   read_back_normal (ctx: ctx_t, t: value_t): exp_t {
-    return ut.TODO ()
+    if (t instanceof value_absurd_t) {
+      return new exp_the_t (
+        new exp_absurd_t (),
+        this.neutral.read_back_neutral (ctx),
+      )
+    } else {
+      return this.neutral.read_back_neutral (ctx)
+    }
   }
 }
 
 export
 abstract class neutral_t {
   neutral_t: "neutral_t" = "neutral_t"
+
+  abstract read_back_neutral (ctx: ctx_t): exp_t
 }
 
 export
@@ -1430,6 +1513,10 @@ class neutral_var_t extends neutral_t {
   ) {
     super ()
     this.name = name
+  }
+
+  read_back_neutral (ctx: ctx_t): exp_t {
+    return ut.TODO ()
   }
 }
 
@@ -1446,6 +1533,10 @@ class neutral_apply_t extends neutral_t {
     this.fun = fun
     this.arg = arg
   }
+
+  read_back_neutral (ctx: ctx_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1458,6 +1549,10 @@ class neutral_car_t extends neutral_t {
     super ()
     this.pair = pair
   }
+
+  read_back_neutral (ctx: ctx_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1469,6 +1564,10 @@ class neutral_cdr_t extends neutral_t {
   ) {
     super ()
     this.pair = pair
+  }
+
+  read_back_neutral (ctx: ctx_t): exp_t {
+    return ut.TODO ()
   }
 }
 
@@ -1491,6 +1590,10 @@ class neutral_ind_nat_t extends neutral_t {
     this.base = base
     this.step = step
   }
+
+  read_back_neutral (ctx: ctx_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1509,6 +1612,10 @@ class neutral_replace_t extends neutral_t {
     this.motive = motive
     this.base = base
   }
+
+  read_back_neutral (ctx: ctx_t): exp_t {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1523,6 +1630,10 @@ class neutral_ind_absurd_t extends neutral_t {
     super ()
     this.target = target
     this.motive = motive
+  }
+
+  read_back_neutral (ctx: ctx_t): exp_t {
+    return ut.TODO ()
   }
 }
 
