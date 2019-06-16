@@ -1252,23 +1252,17 @@ class value_lambda_t extends value_t {
     if (t instanceof value_pi_t) {
       let fresh_name = freshen (
         ctx.names (),
-        t.ret_type.name,
-      )
+        t.ret_type.name)
       let arg = new the_neutral_t (
         t.arg_type,
-        new neutral_var_t (fresh_name),
-      )
+        new neutral_var_t (fresh_name))
       return new exp_lambda_t (
         fresh_name,
         exp_apply_t.exe (this, arg) .read_back (
           ctx.ext (fresh_name, new bind_t (t.arg_type)),
-          t.ret_type.apply (arg),
-        )
-      )
+          t.ret_type.apply (arg)))
     } else {
-      throw new Error (
-        `type of lambda must be pi`
-      )
+      throw new Error (`type of lambda must be pi`)
     }
   }
 }
@@ -1290,22 +1284,17 @@ class value_sigma_t extends value_t {
   read_back (ctx: ctx_t, t: value_t): exp_t {
     let fresh_name = freshen (
       ctx.names (),
-      this.cdr_type.name,
-    )
+      this.cdr_type.name)
     return new exp_sigma_t (
       fresh_name,
       this.car_type.read_back (
-        ctx, new value_universe_t (),
-      ),
+        ctx, new value_universe_t ()),
       this.cdr_type.apply (
         new the_neutral_t (
-          this.car_type, new neutral_var_t (fresh_name),
-        )
-      ) .read_back (
-        ctx.ext (fresh_name, new bind_t (this.car_type)),
-        new value_universe_t (),
-      )
-    )
+          this.car_type, new neutral_var_t (fresh_name)))
+        .read_back (
+          ctx.ext (fresh_name, new bind_t (this.car_type)),
+          new value_universe_t ()))
   }
 }
 
@@ -1332,12 +1321,9 @@ class value_pair_t extends value_t {
       let cdr = exp_cdr_t.exe (this)
       return new exp_cons_t (
         car.read_back (ctx, t.car_type),
-        cdr.read_back (ctx, t.cdr_type.apply (car)),
-      )
+        cdr.read_back (ctx, t.cdr_type.apply (car)))
     } else {
-      throw new Error (
-        `type of pair must be sigma`
-      )
+      throw new Error (`type of pair must be sigma`)
     }
   }
 }
@@ -1378,9 +1364,7 @@ class value_add1_t extends value_t {
   }
 
   read_back (ctx: ctx_t, t: value_t): exp_t {
-    return new exp_add1_t (
-      this.prev.read_back (ctx, t)
-    )
+    return new exp_add1_t (this.prev.read_back (ctx, t))
   }
 }
 
@@ -1405,8 +1389,7 @@ class value_eqv_t extends value_t {
     return new exp_eqv_t (
       this.t.read_back (ctx, new value_universe_t ()),
       this.from.read_back (ctx, this.t),
-      this.to.read_back (ctx, this.t),
-    )
+      this.to.read_back (ctx, this.t))
   }
 }
 
@@ -1516,8 +1499,7 @@ class the_neutral_t extends value_t {
     if (t instanceof value_absurd_t) {
       return new exp_the_t (
         new exp_absurd_t (),
-        this.neutral.read_back_neutral (ctx),
-      )
+        this.neutral.read_back_neutral (ctx))
     } else {
       return this.neutral.read_back_neutral (ctx)
     }
@@ -1564,8 +1546,7 @@ class neutral_apply_t extends neutral_t {
   read_back_neutral (ctx: ctx_t): exp_t {
     return new exp_apply_t (
       this.fun.read_back_neutral (ctx),
-      this.arg.read_back_the_value (ctx),
-    )
+      this.arg.read_back_the_value (ctx))
   }
 }
 
@@ -1626,8 +1607,7 @@ class neutral_ind_nat_t extends neutral_t {
       this.target.read_back_neutral (ctx),
       this.motive.read_back_the_value (ctx),
       this.base.read_back_the_value (ctx),
-      this.step.read_back_the_value (ctx),
-    )
+      this.step.read_back_the_value (ctx))
   }
 }
 
@@ -1652,8 +1632,7 @@ class neutral_replace_t extends neutral_t {
     return new exp_replace_t (
       this.target.read_back_neutral (ctx),
       this.motive.read_back_the_value (ctx),
-      this.base.read_back_the_value (ctx),
-    )
+      this.base.read_back_the_value (ctx))
   }
 }
 
@@ -1675,10 +1654,8 @@ class neutral_ind_absurd_t extends neutral_t {
     return new exp_ind_absurd_t (
       new exp_the_t (
         new exp_absurd_t (),
-        this.target.read_back_neutral (ctx),
-      ),
-      this.motive.read_back_the_value (ctx),
-    )
+        this.target.read_back_neutral (ctx)),
+      this.motive.read_back_the_value (ctx))
   }
 }
 
@@ -1720,9 +1697,7 @@ function conversion_check (
   if (alpha_eq (e2, e1)) {
     return new ok_t ("ok")
   } else {
-    let msg = new error_message_t (
-      "TODO"
-    )
+    let msg = new error_message_t ("TODO")
     return new err_t (msg)
   }
 }
