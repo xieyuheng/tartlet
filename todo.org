@@ -1,4 +1,4 @@
-- `read_back` on `type_t`
-- `read_back_type` on `type_t`
+- `read_back_normal` on `value_t`
+- `read_back_neutral` on `neutral_t`
 - better error report
 - `error_msg_t` for `result_t <_, error_msg_t>`
