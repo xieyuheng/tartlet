@@ -73,9 +73,7 @@ class ctx_t {
       return new some_t (
         new the_neutral_t (
           den.t,
-          new neutral_var_t (name),
-        )
-      )
+          new neutral_var_t (name)))
     } else {
       return new none_t ()
     }
@@ -88,8 +86,7 @@ class ctx_t {
   ext (name: string, den: den_t): ctx_t {
     return new ctx_t (
       new Map (this.map)
-        .set (name, den)
-    )
+        .set (name, den))
   }
 
   names (): Set <string> {
@@ -105,13 +102,10 @@ class ctx_t {
         map.set (
           name, new the_neutral_t (
             den.t,
-            new neutral_var_t (name),
-          )
-        )
+            new neutral_var_t (name)))
       } else {
         throw new Error (
-          `unknow type of den_t ${den.constructor.name}`
-        )
+          `unknow type of den_t ${den.constructor.name}`)
       }
     }
     return new env_t (map)
@@ -144,8 +138,7 @@ class env_t {
   ext (name: string, value: value_t): env_t {
     return new env_t (
       new Map (this.map)
-        .set (name, value)
-    )
+        .set (name, value))
   }
 }
 
@@ -154,7 +147,6 @@ abstract class closure_t {
   closure_t: "closure_t" = "closure_t"
 
   abstract name: string
-
   abstract apply (value: value_t): value_t
 }
 
@@ -196,8 +188,7 @@ class env_closure_t extends closure_t {
 
   apply (value: value_t): value_t {
     return this.body.eval (
-      this.env.ext (this.name, value)
-    )
+      this.env.ext (this.name, value))
   }
 }
 
@@ -216,11 +207,21 @@ abstract class exp_t {
 
   abstract eval (env: env_t): value_t
 
-
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
     let msg = new error_message_t (
-      `infer is not implemented for type: ${this.constructor.name}`
-    )
+      `infer is not implemented for exp type: ${this.constructor.name}`)
+    return new err_t (msg)
+  }
+
+  /*
+    TODO
+  */
+  check (
+    ctx: ctx_t,
+    t: value_t,
+  ): result_t <exp_t, error_message_t> {
+    let msg = new error_message_t (
+      `check is not implemented for exp type: ${this.constructor.name}`)
     return new err_t (msg)
   }
 }
@@ -284,9 +285,7 @@ class exp_var_t extends exp_t {
   eval (env: env_t): value_t {
     return env.lookup_value (this.name) .unwrap_or_throw (
       new Error (
-        `undefined name: ${this.name}`
-      )
-    )
+        `undefined name: ${this.name}`))
   }
 }
 
@@ -321,8 +320,7 @@ class exp_pi_t extends exp_t {
       ) && this.ret_type.alpha_eq (
         that.ret_type,
         this_map.set (this.name, sym),
-        that_map.set (this.name, sym),
-      )
+        that_map.set (this.name, sym))
     } else {
       return false
     }
@@ -334,9 +332,7 @@ class exp_pi_t extends exp_t {
       new env_closure_t (
         env,
         this.name,
-        this.ret_type,
-      )
-    )
+        this.ret_type))
   }
 }
 
@@ -364,8 +360,7 @@ class exp_lambda_t extends exp_t {
       return this.body.alpha_eq (
         that.body,
         this_map.set (this.name, sym),
-        that_map.set (this.name, sym),
-      )
+        that_map.set (this.name, sym))
     } else {
       return false
     }
@@ -376,9 +371,7 @@ class exp_lambda_t extends exp_t {
       new env_closure_t (
         env,
         this.name,
-        this.body,
-      )
-    )
+        this.body))
   }
 }
 
@@ -412,8 +405,7 @@ class exp_apply_t extends exp_t {
   eval (env: env_t): value_t {
     return exp_apply_t.exe (
       this.rator.eval (env),
-      this.rand.eval (env),
-    )
+      this.rand.eval (env))
   }
 
   static exe (
@@ -428,9 +420,7 @@ class exp_apply_t extends exp_t {
         fun.t.ret_type.apply (arg),
         new neutral_apply_t (
           fun.neutral,
-          new the_value_t (fun.t.arg_type, arg),
-        )
-      )
+          new the_value_t (fun.t.arg_type, arg)))
     } else {
       throw new Error (`exe wrong type of value`)
     }
@@ -468,8 +458,7 @@ class exp_sigma_t extends exp_t {
       ) && this.cdr_type.alpha_eq (
         that.cdr_type,
         this_map.set (this.name, sym),
-        that_map.set (this.name, sym),
-      )
+        that_map.set (this.name, sym))
     } else {
       return false
     }
@@ -484,6 +473,34 @@ class exp_sigma_t extends exp_t {
         this.cdr_type,
       )
     )
+  }
+
+  /*
+    ctx :- A <= UNIVERSE
+    ctx.ext (x, A) :- D <= UNIVERSE
+    -----------------
+    ctx :- SIGMA (x, A, D) => UNIVERSE
+  */
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return this.car_type
+      .check (ctx, new value_universe_t ())
+      .bind (car_type => {
+        return this.cdr_type
+          .check (
+            ctx.ext (
+              this.name,
+              new bind_t (car_type.eval (ctx.to_env ()))),
+            new value_universe_t ())
+          .bind (cdr_type => {
+            return new ok_t (
+              new exp_the_t (
+                new exp_universe_t (),
+                new exp_sigma_t (
+                  this.name,
+                  car_type,
+                  cdr_type)))
+          })
+      })
   }
 }
 
@@ -517,8 +534,7 @@ class exp_cons_t extends exp_t {
   eval (env: env_t): value_t {
     return new value_pair_t (
       this.car.eval (env),
-      this.cdr.eval (env),
-    )
+      this.cdr.eval (env))
   }
 }
 
@@ -560,8 +576,7 @@ class exp_car_t extends exp_t {
                pair.t instanceof value_sigma_t) {
       return new the_neutral_t (
         pair.t.car_type,
-        new neutral_car_t (pair.neutral),
-      )
+        new neutral_car_t (pair.neutral))
     } else {
       throw new Error (`exe wrong type of value`)
     }
@@ -593,8 +608,7 @@ class exp_cdr_t extends exp_t {
 
   eval (env: env_t): value_t {
     return exp_cdr_t.exe (
-      this.pair.eval (env),
-    )
+      this.pair.eval (env))
   }
 
   static exe (
@@ -606,10 +620,8 @@ class exp_cdr_t extends exp_t {
                pair.t instanceof value_sigma_t) {
       return new the_neutral_t (
         pair.t.cdr_type.apply (
-          exp_car_t.exe (pair)
-        ),
-        new neutral_cdr_t (pair.neutral),
-      )
+          exp_car_t.exe (pair)),
+        new neutral_cdr_t (pair.neutral))
     } else {
       throw new Error (`exe wrong type of value`)
     }
@@ -679,20 +691,14 @@ class exp_add1_t extends exp_t {
     that_map: Map <string, string>,
   ): boolean {
     if (that instanceof exp_add1_t) {
-      return this.prev.alpha_eq (
-        that.prev,
-        this_map,
-        that_map,
-      )
+      return this.prev.alpha_eq (that.prev, this_map, that_map)
     } else {
       return false
     }
   }
 
   eval (env: env_t): value_t {
-    return new value_add1_t (
-      this.prev.eval (env)
-    )
+    return new value_add1_t (this.prev.eval (env))
   }
 }
 
@@ -736,8 +742,7 @@ class exp_ind_nat_t extends exp_t {
       this.target.eval (env),
       this.motive.eval (env),
       this.base.eval (env),
-      this.step.eval (env),
-    )
+      this.step.eval (env))
   }
 
   static exe (
@@ -755,9 +760,7 @@ class exp_ind_nat_t extends exp_t {
           target.prev,
           motive,
           base,
-          step,
-        )
-      )
+          step))
     } else if (target instanceof the_neutral_t &&
                target.t instanceof value_nat_t) {
       return new the_neutral_t (
@@ -769,14 +772,11 @@ class exp_ind_nat_t extends exp_t {
               new value_nat_t (),
               new native_closure_t ("k", k => {
                 return new value_universe_t ()
-              })
-            ),
-            motive,
-          ),
+              })),
+            motive),
           new the_value_t (
             exp_apply_t.exe (motive, new value_zero_t ()),
-            base,
-          ),
+            base),
           new the_value_t (
             new value_pi_t (
               new value_nat_t (),
@@ -785,16 +785,10 @@ class exp_ind_nat_t extends exp_t {
                   exp_apply_t.exe (motive, prev),
                   new native_closure_t ("almost", almost => {
                     return exp_apply_t.exe (
-                      motive, new value_add1_t (prev)
-                    )
-                  })
-                )
-              })
-            ),
-            step,
-          )
-        )
-      )
+                      motive, new value_add1_t (prev))
+                  }))
+              })),
+            step)))
     } else {
       throw new Error (`exe wrong type of value`)
     }
@@ -836,8 +830,7 @@ class exp_eqv_t extends exp_t {
     return new value_eqv_t (
       this.t.eval (env),
       this.from.eval (env),
-      this.to.eval (env),
-    )
+      this.to.eval (env))
   }
 }
 
@@ -897,8 +890,7 @@ class exp_replace_t extends exp_t {
     return exp_replace_t.exe (
       this.target.eval (env),
       this.motive.eval (env),
-      this.base.eval (env),
-    )
+      this.base.eval (env))
   }
 
   static exe (
@@ -919,16 +911,11 @@ class exp_replace_t extends exp_t {
               target.t.t,
               new native_closure_t ("x", _value => {
                 return new value_universe_t ()
-              })
-            ),
-            motive,
-          ),
+              })),
+            motive),
           new the_value_t (
             exp_apply_t.exe (motive, target.t.from),
-            base,
-          )
-        )
-      )
+            base)))
     } else {
       throw new Error (`exe wrong type of value`)
     }
@@ -1050,10 +1037,7 @@ class exp_ind_absurd_t extends exp_t {
           target.neutral,
           new the_value_t (
             new value_universe_t (),
-            motive,
-          )
-        )
-      )
+            motive)))
     } else {
       throw new Error (`exe wrong type of value`)
     }
@@ -1132,6 +1116,17 @@ class exp_universe_t extends exp_t {
   eval (env: env_t): value_t {
     return new value_universe_t ()
   }
+
+  /*
+    -----------------
+    ctx :- UNIVERSE => UNIVERSE
+  */
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return new ok_t (
+      new exp_the_t (
+        new exp_universe_t (),
+        new exp_universe_t ()))
+  }
 }
 
 export
@@ -1171,6 +1166,25 @@ class exp_the_t extends exp_t {
   eval (env: env_t): value_t {
     return this.value.eval (env)
   }
+
+  /*
+    ctx :- T <= UNIVERSE
+    ctx :- e <= T
+    -----------------
+    ctx :- e: T => T
+  */
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return this.t
+      .check (ctx, new value_universe_t ())
+      .bind (t => {
+        return this.value
+          .check (ctx, t.eval (ctx.to_env ()))
+          .bind (value => {
+            return new ok_t (
+              new exp_the_t (t, value))
+          })
+      })
+  }
 }
 
 export
@@ -1208,22 +1222,18 @@ class value_pi_t extends value_t {
   read_back (ctx: ctx_t, t: value_t): exp_t {
     let fresh_name = freshen (
       ctx.names (),
-      this.ret_type.name,
-    )
+      this.ret_type.name)
     return new exp_sigma_t (
       fresh_name,
       this.arg_type.read_back (
-        ctx, new value_universe_t (),
-      ),
+        ctx, new value_universe_t ()),
       this.ret_type.apply (
         new the_neutral_t (
-          this.arg_type, new neutral_var_t (fresh_name),
-        )
-      ) .read_back (
-        ctx.ext (fresh_name, new bind_t (this.arg_type)),
-        new value_universe_t (),
-      )
-    )
+          this.arg_type,
+          new neutral_var_t (fresh_name)))
+        .read_back (
+          ctx.ext (fresh_name, new bind_t (this.arg_type)),
+          new value_universe_t ()))
   }
 }
 
@@ -1687,5 +1697,32 @@ class the_value_t {
 
   read_back_the_value (ctx: ctx_t): exp_t {
     return this.value.read_back (ctx, this.t)
+  }
+}
+
+export
+function alpha_eq (
+  e1: exp_t,
+  e2: exp_t,
+): boolean {
+  return e1.alpha_eq (e2, new Map (), new Map ())
+}
+
+export
+function conversion_check (
+  ctx: ctx_t,
+  t: value_t,
+  v1: value_t,
+  v2: value_t,
+): result_t <"ok", error_message_t> {
+  let e1 = v1.read_back (ctx, t)
+  let e2 = v2.read_back (ctx, t)
+  if (alpha_eq (e2, e1)) {
+    return new ok_t ("ok")
+  } else {
+    let msg = new error_message_t (
+      "TODO"
+    )
+    return new err_t (msg)
   }
 }

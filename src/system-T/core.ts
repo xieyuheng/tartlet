@@ -203,7 +203,6 @@ class lambda_t extends exp_t {
     -------------------------
     ctx :- lambda (x) { e } <= A -> B
   */
-
   check (t: type_t, ctx: ctx_t = new ctx_t ()): result_t <"ok", string> {
     if (t instanceof arrow_t) {
       let arrow = t
@@ -245,7 +244,6 @@ class var_t extends exp_t {
     --------------------------
     ctx.find (x, A) :- x => A
   */
-
   infer (ctx: ctx_t): result_t <type_t, string> {
     return ctx.find (this.name) .match ({
       some: t => result_t.pure (t),
@@ -314,7 +312,6 @@ class apply_t extends exp_t {
     ---------------
     ctx :- (e1 e2) => B
   */
-
   infer (ctx: ctx_t): result_t <type_t, string> {
     return this.rator.infer (ctx)
       .bind (rator_type => {
@@ -709,7 +706,6 @@ class rec_nat_t extends exp_t {
     -----------------------------------
     ctx :- rec [A] (n, b, s) => A
   */
-
   infer (ctx: ctx_t): result_t <type_t, string> {
     return this.target.infer (ctx)
       .bind (target_type => {
@@ -752,7 +748,6 @@ class zero_t extends exp_t {
     -------------------
     ctx :- zero <= Nat
   */
-
   check (t: type_t, ctx: ctx_t = new ctx_t ()): result_t <"ok", string> {
     if (t.eq (new nat_t ())) {
       return result_t.pure ("ok")
@@ -789,7 +784,6 @@ class add1_t extends exp_t {
     -------------------
     ctx :- add1 (n) <= Nat
   */
-
   check (t: type_t, ctx: ctx_t = new ctx_t ()): result_t <"ok", string> {
     if (t.eq (new nat_t ())) {
       return this.prev.check (t, ctx)

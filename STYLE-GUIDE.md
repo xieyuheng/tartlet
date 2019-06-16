@@ -34,3 +34,52 @@
     `matrix_t` and `vector_t` should be different types,
     and a lots of methods must be repeated,
     thus the implementation is not easy.
+
+## Placing `()` in function call
+
+- Do **not** write:
+
+``` typescript
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    let fresh_name = freshen (
+      ctx.names (),
+      this.ret_type.name,
+    )
+    return new exp_sigma_t (
+      fresh_name,
+      this.arg_type.read_back (
+        ctx, new value_universe_t (),
+      ),
+      this.ret_type.apply (
+        new the_neutral_t (
+          this.arg_type,
+          new neutral_var_t (fresh_name),
+        )
+      ) .read_back (
+        ctx.ext (fresh_name, new bind_t (this.arg_type)),
+        new value_universe_t (),
+      )
+    )
+  }
+```
+
+- write the following instead:
+
+``` typescript
+  read_back (ctx: ctx_t, t: value_t): exp_t {
+    let fresh_name = freshen (
+      ctx.names (),
+      this.ret_type.name)
+    return new exp_sigma_t (
+      fresh_name,
+      this.arg_type.read_back (
+        ctx, new value_universe_t ()),
+      this.ret_type.apply (
+        new the_neutral_t (
+          this.arg_type,
+          new neutral_var_t (fresh_name)))
+        .read_back (
+          ctx.ext (fresh_name, new bind_t (this.arg_type)),
+          new value_universe_t ()))
+  }
+```
