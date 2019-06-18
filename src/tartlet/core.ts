@@ -287,6 +287,21 @@ class exp_var_t extends exp_t {
       new Error (
         `undefined name: ${this.name}`))
   }
+
+  /*
+    -----------------
+    ctx :- VAR (name) => ctx.lookup_type (name)
+  */
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return ctx.lookup_type (this.name) .match ({
+      some: t => new ok_t (
+        new exp_the_t (
+          t.read_back (ctx, new value_universe_t ()),
+          this)),
+      none: () => new err_t (
+        new error_message_t ("can not find var in ctx")),
+    })
+  }
 }
 
 export
@@ -335,8 +350,32 @@ class exp_pi_t extends exp_t {
         this.ret_type))
   }
 
+  /*
+    ctx :- A <= UNIVERSE
+    ctx.ext (x, A) :- B <= UNIVERSE
+    -----------------
+    ctx :- PI (x: A, R) => UNIVERSE
+  */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
-    return ut.TODO ()
+    return this.arg_type
+      .check (ctx, new value_universe_t ())
+      .bind (arg_type => {
+        return this.ret_type
+          .check (
+            ctx.ext (
+              this.name,
+              new bind_t (arg_type.eval (ctx.to_env ()))),
+            new value_universe_t ())
+          .bind (ret_type => {
+            return new ok_t (
+              new exp_the_t (
+                new exp_universe_t (),
+                new exp_pi_t (
+                  this.name,
+                  arg_type,
+                  ret_type)))
+          })
+      })
   }
 }
 
@@ -430,8 +469,36 @@ class exp_apply_t extends exp_t {
     }
   }
 
+  /*
+    ctx :- rator => PI (x: A, R)
+    ctx :- rand <= A
+    -----------------
+    ctx :- APPLY (rator, rand) => R
+  */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
-    return ut.TODO ()
+    return this.rator
+      .infer (ctx)
+      .bind (the => {
+        let t = the.t.eval (ctx.to_env ())
+        if (t instanceof value_pi_t) {
+          // typescript's type checker will fail
+          //   when just use `(pi instanceof value_pi_t)`
+          let pi = t as value_pi_t
+          return this.rand
+            .check (ctx, pi.arg_type)
+            .bind (rand => {
+              return new ok_t (
+                new exp_the_t (
+                  pi.ret_type.apply (rand.eval (ctx.to_env ()))
+                    .read_back (ctx, new value_universe_t ()),
+                  new exp_apply_t (the.value, rand)))
+            })
+        } else {
+          return new err_t (
+            new error_message_t (
+              "expected value_pi_t"))
+        }
+      })
   }
 }
 
@@ -487,7 +554,7 @@ class exp_sigma_t extends exp_t {
     ctx :- A <= UNIVERSE
     ctx.ext (x, A) :- D <= UNIVERSE
     -----------------
-    ctx :- SIGMA (x, A, D) => UNIVERSE
+    ctx :- SIGMA (x: A, D) => UNIVERSE
   */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
     return this.car_type
@@ -591,7 +658,7 @@ class exp_car_t extends exp_t {
   }
 
   /*
-    ctx: p => SIGMA (x, A, D)
+    ctx: p => SIGMA (x: A, D)
     ----------------
     ctx :- CAR (p) => A
   */
@@ -665,7 +732,7 @@ class exp_cdr_t extends exp_t {
   }
 
   /*
-    ctx: p => SIGMA (x, A, D)
+    ctx: p => SIGMA (x: A, D)
     ----------------
     ctx :- CDR (p) => D .subst (x, CAR (p))
   */
@@ -1091,7 +1158,41 @@ class exp_replace_t extends exp_t {
     ctx :- REPLACE (target, motive, base) => motive (to)
    */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
-    return ut.TODO ()
+    return this.target
+      .infer (ctx)
+      .bind (the => {
+        let t = the.t.eval (ctx.to_env ())
+        if (t instanceof value_eqv_t) {
+          // typescript's type checker will fail
+          //   when just use `(eqv instanceof value_eqv_t)`
+          let eqv = t as value_eqv_t
+          return this.motive
+            .check (ctx, new value_pi_t (
+              eqv.t, new native_closure_t (
+                "x", _ => new value_universe_t ())))
+            .bind (motive => {
+              let motive_value = motive.eval (ctx.to_env ())
+              return this.base
+                .check (ctx, exp_apply_t.exe (
+                  motive_value, eqv.from))
+                .bind (base => {
+                  return new ok_t (
+                    new exp_the_t (
+                      exp_apply_t
+                        .exe (motive_value, eqv.to)
+                        .read_back (ctx, new value_universe_t ()),
+                      new exp_replace_t (
+                        the.value,
+                        motive,
+                        base)))
+                })
+            })
+        } else {
+          return new err_t (
+            new error_message_t (
+              "expected value_eqv_t"))
+        }
+      })
   }
 }
 
@@ -1117,8 +1218,15 @@ class exp_trivial_t extends exp_t {
     return new value_trivial_t ()
   }
 
+  /*
+    -----------------
+    ctx :- TRIVIAL => UNIVERSE
+  */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
-    return ut.TODO ()
+    return new ok_t (
+      new exp_the_t (
+        new exp_universe_t (),
+        new exp_trivial_t ()))
   }
 }
 
@@ -1167,8 +1275,15 @@ class exp_absurd_t extends exp_t {
     return new value_absurd_t ()
   }
 
+  /*
+    -----------------
+    ctx :- ABSURD => UNIVERSE
+  */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
-    return ut.TODO ()
+    return new ok_t (
+      new exp_the_t (
+        new exp_universe_t (),
+        new exp_absurd_t ()))
   }
 }
 
@@ -1224,8 +1339,27 @@ class exp_ind_absurd_t extends exp_t {
     }
   }
 
+  /*
+    ctx :- target <= ABSURD
+    ctx :- motive <= UNIVERSE
+    -----------------
+    ctx :- IND_ABSURD (target, motive) => UNIVERSE
+  */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
-    return ut.TODO ()
+    return this.target
+      .check (ctx, new value_absurd_t ())
+      .bind (target => {
+        return this.motive
+          .check (ctx, new value_universe_t ())
+          .bind (motive => {
+            return new ok_t (
+              new exp_the_t (
+                new exp_universe_t (),
+                new exp_ind_absurd_t (
+                  target,
+                  motive)))
+          })
+      })
   }
 }
 
@@ -1251,8 +1385,15 @@ class exp_atom_t extends exp_t {
     return new value_atom_t ()
   }
 
+  /*
+    -----------------
+    ctx :- ATOM => UNIVERSE
+  */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
-    return ut.TODO ()
+    return new ok_t (
+      new exp_the_t (
+        new exp_universe_t (),
+        new exp_atom_t ()))
   }
 }
 
