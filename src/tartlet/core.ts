@@ -334,6 +334,10 @@ class exp_pi_t extends exp_t {
         this.name,
         this.ret_type))
   }
+
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -424,6 +428,10 @@ class exp_apply_t extends exp_t {
     } else {
       throw new Error (`exe wrong type of value`)
     }
+  }
+
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return ut.TODO ()
   }
 }
 
@@ -876,7 +884,37 @@ class exp_ind_nat_t extends exp_t {
     ctx :- IND_NAT (target, motive, base, step) => motive (target)
   */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
-    return ut.TODO ()
+    return this.target
+      .check (ctx, new value_universe_t ())
+      .bind (target => {
+        return this.motive
+          .check (ctx, new value_pi_t (
+            new value_nat_t (),
+            new native_closure_t (
+              "n", _ => new value_universe_t ())))
+          .bind (motive => {
+            let motive_value = motive.eval (ctx.to_env ())
+            let target_value = target.eval (ctx.to_env ())
+            return this.base
+              .check (ctx, exp_apply_t.exe (
+                motive_value, new value_zero_t ()))
+              .bind (base => {
+                return this.step
+                  .check (ctx, ind_nat_step_type (motive_value))
+                  .bind (step => {
+                    return new ok_t (
+                      new exp_the_t (
+                        exp_apply_t
+                          .exe (
+                            motive_value, target_value)
+                          .read_back (
+                            ctx, new value_universe_t ()),
+                        new exp_ind_nat_t (
+                          target, motive, base, step)))
+                  })
+              })
+          })
+      })
   }
 }
 
@@ -928,6 +966,33 @@ class exp_eqv_t extends exp_t {
       this.t.eval (env),
       this.from.eval (env),
       this.to.eval (env))
+  }
+
+  /*
+    ctx :- T <= UNIVERSE
+    ctx :- from <= T
+    ctx :- to <= T
+    --------------------
+    ctx :- EQV (T, from, to) => UNIVERSE
+   */
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return this.t
+      .check (ctx, new value_universe_t ())
+      .bind (t => {
+        let t_value = t.eval (ctx.to_env ())
+        return this.from
+          .check (ctx, t_value)
+          .bind (from => {
+            return this.to
+              .check (ctx, t_value)
+              .bind (to => {
+                return new ok_t (
+                  new exp_the_t (
+                    new exp_universe_t,
+                    new exp_eqv_t (t, from, to)))
+              })
+          })
+      })
   }
 }
 
@@ -1017,6 +1082,17 @@ class exp_replace_t extends exp_t {
       throw new Error (`exe wrong type of value`)
     }
   }
+
+  /*
+    ctx :- target => EQV (T, from, to)
+    ctx :- motive <= PI (_: T, UNIVERSE)
+    ctx :- base <= motive (from)
+    --------------------
+    ctx :- REPLACE (target, motive, base) => motive (to)
+   */
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1039,6 +1115,10 @@ class exp_trivial_t extends exp_t {
 
   eval (env: env_t): value_t {
     return new value_trivial_t ()
+  }
+
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return ut.TODO ()
   }
 }
 
@@ -1085,6 +1165,10 @@ class exp_absurd_t extends exp_t {
 
   eval (env: env_t): value_t {
     return new value_absurd_t ()
+  }
+
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return ut.TODO ()
   }
 }
 
@@ -1139,6 +1223,10 @@ class exp_ind_absurd_t extends exp_t {
       throw new Error (`exe wrong type of value`)
     }
   }
+
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return ut.TODO ()
+  }
 }
 
 export
@@ -1161,6 +1249,10 @@ class exp_atom_t extends exp_t {
 
   eval (env: env_t): value_t {
     return new value_atom_t ()
+  }
+
+  infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
+    return ut.TODO ()
   }
 }
 
