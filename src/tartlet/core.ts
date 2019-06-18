@@ -878,6 +878,19 @@ class exp_ind_nat_t extends exp_t {
   }
 }
 
+function ind_nat_step_type (motive: value_t): value_pi_t {
+  return new value_pi_t (
+    new value_nat_t (),
+    new native_closure_t ("prev", prev => {
+      return new value_pi_t (
+        exp_apply_t.exe (motive, prev),
+        new native_closure_t ("almost", almost => {
+          return exp_apply_t.exe (
+            motive, new value_add1_t (prev))
+        }))
+    }))
+}
+
 export
 class exp_eqv_t extends exp_t {
   t: exp_t

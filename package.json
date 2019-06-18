@@ -22,7 +22,7 @@
     "@types/nanoid": "^2.0.0",
     "ava": "^2.1.0",
     "typedoc": "^0.14.2",
-    "typescript": "^3.5.1"
+    "typescript": "^3.5.2"
   },
   "dependencies": {
     "cicada-lang": "0.0.36",
