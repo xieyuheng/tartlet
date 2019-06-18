@@ -8,16 +8,11 @@ import {
 } from "../lib/untyped/syntax"
 
 test ("exp.eval", t => {
-  LAMBDA (
-    "x", LAMBDA (
-      "y", VAR ("y")
-    )
-  ) .eval ()
+  LAMBDA ("x", LAMBDA ("y", VAR ("y")))
+    .eval ()
 
-  APPLY (
-    LAMBDA ("x", VAR ("x")),
-    LAMBDA ("x", VAR ("x")),
-  ) .eval ()
+  APPLY (LAMBDA ("x", VAR ("x")), LAMBDA ("x", VAR ("x")))
+    .eval ()
 
   t.pass ()
 })
@@ -27,45 +22,29 @@ test ("freshen", t => {
 
   t.deepEqual (
     cc.freshen (new Set (["x", "x*"]), x),
-    "x**",
-  )
+    "x**")
 
   t.pass ()
 })
 
 test ("read_back", t => {
-  let exp = cc.read_back (
-    new Set (),
-    APPLY (
-      LAMBDA ("x", LAMBDA ("y", APPLY (VAR ("x"), VAR ("y")))),
-      LAMBDA ("x", VAR ("x")),
-    ) .eval (),
-  )
+  let value = APPLY (
+    LAMBDA ("x", LAMBDA ("y", APPLY (VAR ("x"), VAR ("y")))),
+    LAMBDA ("x", VAR ("x")))
+    .eval ()
+  let exp = cc.read_back (new Set (), value)
 
-  t.true (
-    exp.eq (
-      LAMBDA ("y", VAR ("y"))
-    )
-  )
+  t.true (exp.eq (LAMBDA ("y", VAR ("y"))))
 })
 
 test ("normalize", t => {
   let exp = cc.normalize (
     new cc.env_t (),
     APPLY (
-      LAMBDA ("x", LAMBDA ("y", APPLY (
-        VAR ("x"),
-        VAR ("y"),
-      ))),
-      LAMBDA ("x", VAR ("x")),
-    ),
-  )
+      LAMBDA ("x", LAMBDA ("y", APPLY (VAR ("x"), VAR ("y")))),
+      LAMBDA ("x", VAR ("x"))))
 
-  t.true (
-    exp.eq (
-      LAMBDA ("y", VAR ("y"))
-    )
-  )
+  t.true (exp.eq (LAMBDA ("y", VAR ("y"))))
 })
 
 test ("module.define", t => {
@@ -88,11 +67,8 @@ test ("church", t => {
     APPLY (
       APPLY (
         VAR ("church_add"),
-        cc.to_church (2),
-      ),
-      cc.to_church (2),
-    )
-  )
+        cc.to_church (2)),
+      cc.to_church (2)))
 
   t.pass ()
 })

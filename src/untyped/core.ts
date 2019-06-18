@@ -35,10 +35,7 @@ class env_t {
   }
 
   ext (name: string, value: value_t): env_t {
-    return new env_t (
-      new Map (this.map)
-        .set (name, value)
-    )
+    return new env_t (new Map (this.map) .set (name, value))
   }
 }
 
@@ -109,10 +106,7 @@ class var_t extends exp_t {
 
   eval (env: env_t = new env_t ()): value_t {
     return env.find (this.name) .unwrap_or_throw (
-      new Error (
-        `undefined name: ${this.name}`
-      )
-    )
+      new Error (`undefined name: ${this.name}`))
   }
 }
 
@@ -141,15 +135,11 @@ class apply_t extends exp_t {
     let arg = this.rand.eval (env)
 
     if (fun instanceof closure_t) {
-      return fun.body.eval (
-        fun.env.ext (fun.name, arg)
-      )
+      return fun.body.eval (fun.env.ext (fun.name, arg))
     } else if (fun instanceof neutral_t) {
       return new neutral_apply_t (fun, arg)
     } else {
-      throw new Error (
-        `unknown fun value: ${fun}`
-      )
+      throw new Error (`unknown fun value: ${fun}`)
     }
   }
 }
@@ -247,19 +237,14 @@ function read_back (
     let closure = value
     let fresh_name = freshen (
       used_names,
-      closure.name,
-    )
+      closure.name)
     return new lambda_t (
       fresh_name, read_back (
         new Set (used_names) .add (fresh_name),
         closure.body.eval (
           closure.env.ext (
             closure.name,
-            new neutral_var_t (fresh_name),
-          )
-        )
-      )
-    )
+            new neutral_var_t (fresh_name)))))
   } else if (value instanceof neutral_var_t) {
     let neutral_var = value
     return new var_t (neutral_var.name)
@@ -267,13 +252,10 @@ function read_back (
     let neutral_apply = value
     return new apply_t (
       read_back (used_names, neutral_apply.rator),
-      read_back (used_names, neutral_apply.rand),
-    )
+      read_back (used_names, neutral_apply.rand))
   } else {
     ut.log (value)
-    throw new Error (
-      `met unknown type of value`
-    )
+    throw new Error (`met unknown type of value`)
   }
 }
 
@@ -282,10 +264,7 @@ function normalize (
   env: env_t,
   exp: exp_t,
 ): exp_t {
-  return read_back (
-    new Set (),
-    exp.eval (env),
-  )
+  return read_back (new Set (), exp.eval (env))
 }
 
 // Example: Church Numerals
@@ -326,10 +305,7 @@ let church = new module_t ()
 church.define (
   "church_zero", new lambda_t (
     "f", new lambda_t (
-      "x", new var_t ("x")
-    )
-  )
-)
+      "x", new var_t ("x"))))
 
 church.define (
   "church_add1", new lambda_t (
@@ -340,15 +316,8 @@ church.define (
           new apply_t (
             new apply_t (
               new var_t ("prev"),
-              new var_t ("f"),
-            ),
-            new var_t ("x"),
-          )
-        )
-      )
-    )
-  )
-)
+              new var_t ("f")),
+            new var_t ("x")))))))
 
 church.define (
   "church_add", new lambda_t (
@@ -358,21 +327,12 @@ church.define (
           "x", new apply_t (
             new apply_t (
               new var_t ("j"),
-              new var_t ("f"),
-            ),
+              new var_t ("f")),
             new apply_t (
               new apply_t (
                 new var_t ("k"),
-                new var_t ("f"),
-              ),
-              new var_t ("x"),
-            )
-          )
-        )
-      )
-    )
-  )
-)
+                new var_t ("f")),
+              new var_t ("x"))))))))
 
 export
 function to_church (n: number): exp_t {

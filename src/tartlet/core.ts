@@ -867,9 +867,11 @@ class exp_ind_nat_t extends exp_t {
 
   /*
     ctx :- target <= NAT
-    ctx :- motive <= PI (NAT, LAMBDA (_, UNIVERSE))
+    ctx :- motive <= PI (_: NAT, UNIVERSE)
     ctx :- base <= motive (ZERO)
-    ctx :- step <= TODO
+    ctx :- step <= PI (
+    --          prev: NAT, PI (
+    --            almost: motive (prev), motive (ADD1 (prev))))
     --------------------
     ctx :- IND_NAT (target, motive, base, step) => motive (target)
   */
@@ -885,8 +887,7 @@ function ind_nat_step_type (motive: value_t): value_pi_t {
       return new value_pi_t (
         exp_apply_t.exe (motive, prev),
         new native_closure_t ("almost", almost => {
-          return exp_apply_t.exe (
-            motive, new value_add1_t (prev))
+          return exp_apply_t.exe (motive, new value_add1_t (prev))
         }))
     }))
 }

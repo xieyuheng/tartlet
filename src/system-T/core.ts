@@ -35,10 +35,7 @@ class env_t {
   }
 
   ext (name: string, value: value_t): env_t {
-    return new env_t (
-      new Map (this.map)
-        .set (name, value)
-    )
+    return new env_t (new Map (this.map) .set (name, value))
   }
 }
 
@@ -69,10 +66,7 @@ class ctx_t {
   }
 
   ext (name: string, t: type_t): ctx_t {
-    return new ctx_t (
-      new Map (this.map)
-        .set (name, t)
-    )
+    return new ctx_t (new Map (this.map) .set (name, t))
   }
 }
 
@@ -151,8 +145,7 @@ abstract class exp_t {
 
   infer (ctx: ctx_t): result_t <type_t, string> {
     return new err_t (
-      `infer is not implemented for type: ${this.constructor.name}`
-    )
+      `infer is not implemented for type: ${this.constructor.name}`)
   }
 
   /*
@@ -167,8 +160,7 @@ abstract class exp_t {
         return result_t.pure ("ok")
       } else {
         return new err_t (
-          `check is not implemented for type: ${this.constructor.name}`
-        )
+          `check is not implemented for type: ${this.constructor.name}`)
       }
     })
   }
@@ -208,12 +200,10 @@ class lambda_t extends exp_t {
       let arrow = t
       return this.body.check (
         arrow.ret,
-        ctx.ext (this.name, arrow.arg),
-      )
+        ctx.ext (this.name, arrow.arg))
     } else {
       return new err_t (
-        `type of lambda is not arrow_t, bound name: ${this.name}`
-      )
+        `type of lambda is not arrow_t, bound name: ${this.name}`)
     }
   }
 }
@@ -234,10 +224,7 @@ class var_t extends exp_t {
 
   eval (env: env_t = new env_t ()): value_t {
     return env.find (this.name) .unwrap_or_throw (
-      new Error (
-        `undefined name: ${this.name}`
-      )
-    )
+      new Error (`undefined name: ${this.name}`))
   }
 
   /*
@@ -247,9 +234,7 @@ class var_t extends exp_t {
   infer (ctx: ctx_t): result_t <type_t, string> {
     return ctx.find (this.name) .match ({
       some: t => result_t.pure (t),
-      none: () => new err_t (
-        "can not find var in ctx"
-      ),
+      none: () => new err_t ("can not find var in ctx"),
     })
   }
 }
@@ -276,27 +261,19 @@ class apply_t extends exp_t {
 
   static exe (fun: value_t, arg: value_t): value_t {
     if (fun instanceof closure_t) {
-      return fun.body.eval (
-        fun.env.ext (fun.name, arg)
-      )
+      return fun.body.eval (fun.env.ext (fun.name, arg))
     } else if (fun instanceof the_neutral_t) {
       if (fun.t instanceof arrow_t) {
         return new the_neutral_t (
           fun.t.ret,
           new neutral_apply_t (
             fun.neutral,
-            new the_value_t (fun.t.arg, arg)
-          )
-        )
+            new the_value_t (fun.t.arg, arg)))
       } else {
-        throw new Error (
-          `type of the neutral fun is not arrow_t`
-        )
+        throw new Error (`type of the neutral fun is not arrow_t`)
       }
     } else {
-      throw new Error (
-        `unknown fun value: ${fun}`
-      )
+      throw new Error (`unknown fun value: ${fun}`)
     }
   }
 
@@ -321,9 +298,7 @@ class apply_t extends exp_t {
               return result_t.pure (rator_type.ret)
             })
         } else {
-          return new err_t (
-            "rator type is not arrow_t"
-          )
+          return new err_t ("rator type is not arrow_t")
         }
       })
   }
@@ -372,14 +347,11 @@ class module_t {
 
   define (name: string, exp: exp_t): this {
     let t = this.ctx.find (name) .unwrap_or_throw (
-      new Error (`name: ${name} is not claimed before define`)
-    )
+      new Error (`name: ${name} is not claimed before define`))
     exp.check (t, this.ctx) .match ({
       ok: _value => {},
       err: error => {
-        new Error (
-          `type check fail for name: ${name}, error: ${error}`
-        )
+        new Error (`type check fail for name: ${name}, error: ${error}`)
       }
     })
     this.env = this.env.ext (name, exp.eval (this.env))
@@ -390,16 +362,13 @@ class module_t {
     return exp.infer (this.ctx) .match ({
       ok: t => {
         let normal_exp = read_back (
-          this.used_names, t, exp.eval (this.env)
-        )
+          this.used_names, t, exp.eval (this.env))
         return new ok_t (
-          new the_t (t, normal_exp)
-        )
+          new the_t (t, normal_exp))
       },
       err: error => {
         return new err_t (
-          `type infer fail for name: ${name}, error: ${error}`
-        )
+          `type infer fail for name: ${name}, error: ${error}`)
       },
     })
   }
@@ -481,18 +450,14 @@ function read_back (
         read_back (
           used_names,
           new nat_t (),
-          value.prev,
-        )
-      )
+          value.prev))
     } else if (value instanceof the_neutral_t) {
       return read_back_neutral (
         used_names,
-        value.neutral,
-      )
+        value.neutral)
     } else {
       throw new Error (
-        `unknown value of nat_t read_back`
-      )
+        `unknown value of nat_t read_back`)
     }
   } else if (t instanceof arrow_t) {
     let fresh_name = freshen (used_names, "$")
@@ -504,15 +469,9 @@ function read_back (
           value,
           new the_neutral_t (
             t.arg,
-            new neutral_var_t (fresh_name),
-          )
-        )
-      )
-    )
+            new neutral_var_t (fresh_name)))))
   } else {
-    throw new Error (
-      `unknown type to read_back: ${t.constructor.name}`
-    )
+    throw new Error (`unknown type to read_back: ${t.constructor.name}`)
   }
 }
 
@@ -528,8 +487,7 @@ function read_back_neutral (
     let arg = neutral.rand
     return new apply_t (
       read_back_neutral (used_names, fun),
-      read_back (used_names, arg.t, arg.value),
-    )
+      read_back (used_names, arg.t, arg.value))
   } else if (neutral instanceof neutral_rec_nat_t) {
     let base = neutral.base
     let step = neutral.step
@@ -537,12 +495,10 @@ function read_back_neutral (
       neutral.t,
       read_back_neutral (used_names, neutral.target),
       read_back (used_names, base.t, base.value),
-      read_back (used_names, step.t, step.value),
-    )
+      read_back (used_names, step.t, step.value))
   } else {
     throw new Error (
-      `unknown neutral read_back_neutral: ${neutral.constructor.name}`
-    )
+      `unknown neutral read_back_neutral: ${neutral.constructor.name}`)
   }
 }
 
@@ -661,9 +617,7 @@ class rec_nat_t extends exp_t {
           t,
           target.prev,
           base,
-          step,
-        )
-      )
+          step))
     } else if (target instanceof the_neutral_t) {
       if (target.t instanceof nat_t) {
         return new the_neutral_t (
@@ -675,18 +629,14 @@ class rec_nat_t extends exp_t {
               new arrow_t (
                 new nat_t (),
                 new arrow_t (t, t)),
-              step),
-          )
-        )
+              step)))
       } else {
         throw new Error (
-          `type of the neutral fun is not nat_t`
-        )
+          `type of the neutral fun is not nat_t`)
       }
     } else {
       throw new Error (
-        `unknown target value: ${target}`
-      )
+        `unknown target value: ${target}`)
     }
   }
 
@@ -695,8 +645,7 @@ class rec_nat_t extends exp_t {
       this.t,
       this.target.eval (env),
       this.base.eval (env),
-      this.step.eval (env),
-    )
+      this.step.eval (env))
   }
 
   /*
@@ -713,18 +662,13 @@ class rec_nat_t extends exp_t {
           return this.base.check (this.t, ctx)
             .bind (__ => {
               return this.step.check (
-                new arrow_t (
-                  new nat_t, new arrow_t (this.t, this.t)
-                ),
-                ctx,
-              )
+                new arrow_t (new nat_t, new arrow_t (this.t, this.t)),
+                ctx)
             }) .bind (__ => {
               return result_t.pure (this.t)
             })
         } else {
-          return new err_t (
-            "target type is not nat_t"
-          )
+          return new err_t ("target type is not nat_t")
         }
       })
   }
@@ -752,9 +696,7 @@ class zero_t extends exp_t {
     if (t.eq (new nat_t ())) {
       return result_t.pure ("ok")
     } else {
-      return new err_t (
-        "the type of zero should be nat_t"
-      )
+      return new err_t ("the type of zero should be nat_t")
     }
   }
 }
@@ -774,9 +716,7 @@ class add1_t extends exp_t {
   }
 
   eval (env: env_t = new env_t ()): value_t {
-    return new value_add1_t (
-      this.prev.eval (env)
-    )
+    return new value_add1_t (this.prev.eval (env))
   }
 
   /*
@@ -788,9 +728,7 @@ class add1_t extends exp_t {
     if (t.eq (new nat_t ())) {
       return this.prev.check (t, ctx)
     } else {
-      return new err_t (
-        "the type of add1_t should be nat_t"
-      )
+      return new err_t ("the type of add1_t should be nat_t")
     }
   }
 }

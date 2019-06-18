@@ -10,16 +10,11 @@ import {
 } from "../lib/system-T/syntax"
 
 test ("exp.eval", t => {
-  LAMBDA (
-    "x", LAMBDA (
-      "y", VAR ("y")
-    )
-  ) .eval ()
+  LAMBDA ("x", LAMBDA ("y", VAR ("y")))
+    .eval ()
 
-  APPLY (
-    LAMBDA ("x", VAR ("x")),
-    LAMBDA ("x", VAR ("x")),
-  ) .eval ()
+  APPLY (LAMBDA ("x", VAR ("x")), LAMBDA ("x", VAR ("x")))
+    .eval ()
 
   t.pass ()
 })
@@ -29,8 +24,7 @@ test ("freshen", t => {
 
   t.deepEqual (
     cc.freshen (new Set (["x", "x*"]), x),
-    "x**",
-  )
+    "x**")
 
   t.pass ()
 })
@@ -41,25 +35,21 @@ test ("exp.infer", t => {
 
   t.deepEqual (
     VAR ("x") .infer (ctx),
-    new ok_t (NAT),
-  )
+    new ok_t (NAT))
 })
 
 test ("exp.check", t => {
   t.deepEqual (
     ZERO .check (NAT),
-    new ok_t ("ok"),
-  )
+    new ok_t ("ok"))
 
   t.deepEqual (
     ADD1 (ZERO) .check (NAT),
-    new ok_t ("ok"),
-  )
+    new ok_t ("ok"))
 
   t.deepEqual (
     LAMBDA ("x", VAR ("x")) .check (ARROW (NAT, NAT)),
-    new ok_t ("ok"),
-  )
+    new ok_t ("ok"))
 
   t.deepEqual (
     LAMBDA (
@@ -68,14 +58,9 @@ test ("exp.check", t => {
           NAT, VAR ("j"), VAR ("k"),
           LAMBDA (
             "prev", LAMBDA (
-              "sum", ADD1 (VAR ("sum"))
-            )
-          )
-        )
-      )
-    ) .check (ARROW (NAT, ARROW (NAT, NAT))),
-    new ok_t ("ok"),
-  )
+              "sum", ADD1 (VAR ("sum")))))))
+      .check (ARROW (NAT, ARROW (NAT, NAT))),
+    new ok_t ("ok"))
 
   t.pass ()
 })
@@ -85,17 +70,14 @@ test ("module.define", t => {
 
   m.claim (
     "three",
-    NAT,
-  )
+    NAT)
   m.define (
     "three",
-    ADD1 (ADD1 (ADD1 (ZERO)))
-  )
+    ADD1 (ADD1 (ADD1 (ZERO))))
 
   m.claim (
     "+",
-    ARROW (NAT, ARROW (NAT, NAT))
-  )
+    ARROW (NAT, ARROW (NAT, NAT)))
   m.define (
     "+",
     LAMBDA (
@@ -105,25 +87,17 @@ test ("module.define", t => {
           LAMBDA (
             "prev", LAMBDA (
               "almost",
-              ADD1 (VAR ("almost")),
-            )
-          )
-        )
-      )
-    )
-  )
+              ADD1 (VAR ("almost"))))))))
 
   ut.log (
     m.run (
-      APPLY (VAR ("+"), VAR ("three"))
-    )
-  )
+      APPLY (VAR ("+"), VAR ("three"))))
 
   ut.log (
     m.run (
-      APPLY (APPLY (VAR ("+"), VAR ("three")), VAR ("three"))
-    )
-  )
+      APPLY (
+        APPLY (VAR ("+"), VAR ("three")),
+        VAR ("three"))))
 
   t.pass ()
 })
