@@ -24,7 +24,7 @@ Dependently-typed language (baking little pie) in javascript.
 - IRC -- [#cicada-language](https://kiwiirc.com/nextclient/irc.freenode.net/#cicada-language)
 - CI -- [gitlab-ci](https://gitlab.com/xieyuheng/tartlet/pipelines)
 - Related Project
-  [baozi](https://github.com/xieyuheng/baozi) -- dependently-typed language in scala
+  - [baozi](https://github.com/xieyuheng/baozi) -- dependently-typed language in scala
 
 ## Contributing
 
