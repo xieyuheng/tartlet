@@ -1,3 +1,4 @@
+- tartlet.test.js
 - better error report with `span_t` and `error_context_t`
 - separate `exp_t`, `value_t` and `neutral_t` to files
 

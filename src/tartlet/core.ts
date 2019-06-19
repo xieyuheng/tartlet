@@ -55,6 +55,15 @@ class ctx_t {
     this.map = map
   }
 
+  lookup (name: string): option_t <den_t> {
+    let den = this.map.get (name)
+    if (den !== undefined) {
+      return new some_t (den)
+    } else {
+      return new none_t ()
+    }
+  }
+
   lookup_type (name: string): option_t <value_t> {
     let den = this.map.get (name)
     if (den instanceof def_t &&
@@ -2188,5 +2197,92 @@ function conversion_check (
   } else {
     return new err_t (
       new error_message_t ("conversion_check fail"))
+  }
+}
+
+export
+class module_t {
+  ctx: ctx_t
+
+  constructor (
+    ctx: ctx_t = new ctx_t (),
+  ) {
+    this.ctx = ctx
+  }
+
+  get used_names (): Set <string> {
+    return new Set (this.ctx.map.keys ())
+  }
+
+  copy (): module_t {
+    return new module_t (this.ctx.copy ())
+  }
+
+  /** `use` means "import all from" */
+  use (other: module_t): this {
+    for (let [name, den] of other.ctx.map.entries ()) {
+      this.ctx.lookup (name) .match ({
+        some: _value => {
+          throw new Error (`name alreay defined: ${name}`)
+        },
+        none: () => {
+          this.ctx.map.set (name, den)
+        },
+      })
+    }
+    return this
+  }
+
+  claim (name: string, t: exp_t): this {
+    this.ctx.lookup_type (name) .none_or_throw (
+      new Error (`name: ${name} is alreay claimed`))
+
+    t.check (this.ctx, new value_universe_t ()) .match ({
+      ok: checked_type => {
+        this.ctx = this.ctx.ext (name, new bind_t (
+          checked_type.eval (this.ctx.to_env ())))
+      },
+      err: error => {
+        throw new Error (
+          `type check fail, name: ${name}`)
+      },
+    })
+    return this
+  }
+
+  define (name: string, exp: exp_t): this {
+    let den = this.ctx.lookup (name) .unwrap_or_throw (
+      new Error (`name: ${name} is not claimed before define`))
+    if (den instanceof bind_t) {
+      let t = den.t
+      exp.check (this.ctx, t) .match ({
+        ok: _value => {},
+        err: error => {
+          new Error (`type check fail for name: ${name}, error: ${error}`)
+        }
+      })
+      this.ctx = this.ctx.ext (
+        name, new def_t (t, exp.eval (this.ctx.to_env ())))
+    } else if (den instanceof def_t) {
+      throw new Error (
+        `name: ${name} is alreay defined`)
+    } else {
+      throw new Error (
+        `unknown sub class of den_t: ${this.constructor.name}`)
+    }
+    return this
+  }
+
+  run (exp: exp_t): result_t <exp_t, error_message_t> {
+    return exp.infer (this.ctx)
+      .bind (the => {
+        return new ok_t (new exp_the_t (
+          the.t,
+          the.value
+            .eval (this.ctx.to_env ())
+            .read_back (
+              this.ctx,
+              the.t.eval (this.ctx.to_env ()))))
+      })
   }
 }

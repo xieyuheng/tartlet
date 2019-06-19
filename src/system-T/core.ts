@@ -322,7 +322,7 @@ class module_t {
   }
 
   copy (): module_t {
-    return new module_t (this.env.copy ())
+    return new module_t (this.env.copy (), this.ctx.copy ())
   }
 
   /** `use` means "import all from" */

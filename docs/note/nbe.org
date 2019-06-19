@@ -369,4 +369,7 @@
 
 ***** 7.4.2 Type Checking with Definitions
 
+      - If input is an expression, check and normalize it.
+        If input is a definition, check it and add it to the context.
+
 *** 7.5 Projects

@@ -25,7 +25,7 @@
     "typescript": "^3.5.2"
   },
   "dependencies": {
-    "cicada-lang": "0.0.36",
+    "cicada-lang": "^0.0.41",
     "lodash": "^4.17.11",
     "nanoid": "^2.0.3"
   }
