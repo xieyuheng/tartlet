@@ -214,15 +214,22 @@ abstract class exp_t {
   }
 
   /*
-    TODO
+    ctx :- exp => E
+    ctx :- conversion_check (UNIVERSE, T, E)
+    -----------------
+    ctx :- exp <= T
   */
   check (
     ctx: ctx_t,
     t: value_t,
   ): result_t <exp_t, error_message_t> {
-    let msg = new error_message_t (
-      `check is not implemented for exp type: ${this.constructor.name}`)
-    return new err_t (msg)
+    return this.infer (ctx)
+      .bind (the => {
+        return conversion_check (
+          ctx, new value_universe_t (),
+          t, the.t.eval (ctx.to_env ()))
+          .bind (_ok => new ok_t (the.value))
+      })
   }
 }
 
@@ -415,6 +422,34 @@ class exp_lambda_t extends exp_t {
         env,
         this.name,
         this.body))
+  }
+
+  /*
+    ctx.ext (x, A) :- body <= R
+    ------------------------------
+    ctx :- LAMBDA (x, body) <= PI (x: A, R)
+  */
+  check (
+    ctx: ctx_t,
+    t: value_t,
+  ): result_t <exp_t, error_message_t> {
+    if (t instanceof value_pi_t) {
+      let pi = t
+      let var_value = new the_neutral_t (
+        pi.arg_type,
+        new neutral_var_t (this.name))
+      return this.body
+        .check (
+          ctx.ext (this.name, new bind_t (pi.arg_type)),
+          pi.ret_type.apply (var_value))
+        .bind (body => {
+          return new ok_t (new exp_lambda_t (this.name, body))
+        })
+    } else {
+      return new err_t (
+        new error_message_t (
+          "expected value_pi_t"))
+    }
   }
 }
 
@@ -610,6 +645,35 @@ class exp_cons_t extends exp_t {
     return new value_pair_t (
       this.car.eval (env),
       this.cdr.eval (env))
+  }
+
+  /*
+    ctx :- car <= A
+    ctx.ext (x, A) :- cdr <= D
+    -----------------
+    ctx :- CONS (car, cdr) <= SIGMA (x: A, D)
+  */
+  check (
+    ctx: ctx_t,
+    t: value_t,
+  ): result_t <exp_t, error_message_t> {
+    if (t instanceof value_sigma_t) {
+      return this.car
+        .check (ctx, t.car_type)
+        .bind (car => {
+          let cdr_type_value =
+            t.cdr_type.apply (car.eval (ctx.to_env ()))
+          return this.cdr
+            .check (ctx, cdr_type_value)
+            .bind (cdr => {
+              return new ok_t (new exp_cons_t (car, cdr))
+            })
+        })
+    } else {
+      return new err_t (
+        new error_message_t (
+          "expected value_sigma_t"))
+    }
   }
 }
 
@@ -818,6 +882,23 @@ class exp_zero_t extends exp_t {
   eval (env: env_t): value_t {
     return new value_zero_t ()
   }
+
+  /*
+    ---------------------
+    ctx :- ZERO <= NAT
+  */
+  check (
+    ctx: ctx_t,
+    t: value_t,
+  ): result_t <exp_t, error_message_t> {
+    if (t instanceof value_nat_t) {
+      return new ok_t (this)
+    } else {
+      return new err_t (
+        new error_message_t (
+          "expected value_nat_t"))
+    }
+  }
 }
 
 export
@@ -845,6 +926,28 @@ class exp_add1_t extends exp_t {
 
   eval (env: env_t): value_t {
     return new value_add1_t (this.prev.eval (env))
+  }
+
+  /*
+    ctx :- prev <= NAT
+    ---------------------
+    ctx :- ADD1 (prev) <= NAT
+  */
+  check (
+    ctx: ctx_t,
+    t: value_t,
+  ): result_t <exp_t, error_message_t> {
+    if (t instanceof value_nat_t) {
+      return this.prev
+        .check (ctx, new value_nat_t ())
+        .bind (prev => {
+          return new ok_t (prev)
+        })
+    } else {
+      return new err_t (
+        new error_message_t (
+          "expected value_nat_t"))
+    }
   }
 }
 
@@ -1084,6 +1187,28 @@ class exp_same_t extends exp_t {
   eval (env: env_t): value_t {
     return new value_same_t ()
   }
+
+  /*
+    ctx :- conversion_check (T, from, to)
+    ---------------------
+    ctx :- SAME <= EQV (T, from, to)
+  */
+  check (
+    ctx: ctx_t,
+    t: value_t,
+  ): result_t <exp_t, error_message_t> {
+    if (t instanceof value_eqv_t) {
+      let eqv = t
+      return conversion_check (ctx, eqv.t, eqv.from, eqv.to)
+        .bind (_ok => {
+          return new ok_t (this)
+        })
+    } else {
+      return new err_t (
+        new error_message_t (
+          "expected value_eqv_t"))
+    }
+  }
 }
 
 export
@@ -1250,6 +1375,23 @@ class exp_sole_t extends exp_t {
 
   eval (env: env_t): value_t {
     return new value_sole_t ()
+  }
+
+  /*
+    ---------------------
+    ctx :- SOLE <= TRIVIAL
+  */
+  check (
+    ctx: ctx_t,
+    t: value_t,
+  ): result_t <exp_t, error_message_t> {
+    if (t instanceof value_trivial_t) {
+      return new ok_t (this)
+    } else {
+      return new err_t (
+        new error_message_t (
+          "expected value_trivial_t"))
+    }
   }
 }
 
@@ -1422,6 +1564,23 @@ class exp_quote_t extends exp_t {
 
   eval (env: env_t): value_t {
     return new value_quote_t (this.sym)
+  }
+
+  /*
+    ---------------------
+    ctx :- QUOTE (sym) <= ATOM
+  */
+  check (
+    ctx: ctx_t,
+    t: value_t,
+  ): result_t <exp_t, error_message_t> {
+    if (t instanceof value_atom_t) {
+      return new ok_t (this)
+    } else {
+      return new err_t (
+        new error_message_t (
+          "expected value_atom_t"))
+    }
   }
 }
 
@@ -2027,7 +2186,7 @@ function conversion_check (
   if (alpha_eq (e2, e1)) {
     return new ok_t ("ok")
   } else {
-    let msg = new error_message_t ("TODO")
-    return new err_t (msg)
+    return new err_t (
+      new error_message_t ("conversion_check fail"))
   }
 }
