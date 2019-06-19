@@ -1,3 +1,2 @@
-- more nbe notes
 - test by "the little typer"
 - better error report with `span_t` and `error_context_t`
