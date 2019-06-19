@@ -89,15 +89,13 @@ test ("module.define", t => {
               "almost",
               ADD1 (VAR ("almost"))))))))
 
-  ut.log (
-    m.run (
-      APPLY (VAR ("+"), VAR ("three"))))
+  m.run (
+    APPLY (VAR ("+"), VAR ("three")))
 
-  ut.log (
-    m.run (
-      APPLY (
-        APPLY (VAR ("+"), VAR ("three")),
-        VAR ("three"))))
+  m.run (
+    APPLY (
+      APPLY (VAR ("+"), VAR ("three")),
+      VAR ("three")))
 
   t.pass ()
 })

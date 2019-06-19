@@ -66,7 +66,7 @@ class ctx_t {
 
   lookup_type (name: string): option_t <value_t> {
     let den = this.map.get (name)
-    if (den instanceof def_t &&
+    if (den instanceof def_t ||
         den instanceof bind_t) {
       return new some_t (den.t)
     } else {
@@ -315,7 +315,8 @@ class exp_var_t extends exp_t {
           t.read_back (ctx, new value_universe_t ()),
           this)),
       none: () => new err_t (
-        new error_message_t ("can not find var in ctx")),
+        new error_message_t (
+          `can not find name: ${this.name} in ctx`)),
     })
   }
 }
@@ -500,7 +501,7 @@ class exp_apply_t extends exp_t {
     arg: value_t,
   ): value_t {
     if (fun instanceof value_lambda_t) {
-      return fun.body.apply (arg)
+      return fun.closure.apply (arg)
     } else if (fun instanceof the_neutral_t &&
                fun.t instanceof value_pi_t) {
       return new the_neutral_t (
@@ -538,6 +539,7 @@ class exp_apply_t extends exp_t {
                   new exp_apply_t (the.value, rand)))
             })
         } else {
+          console.log ("t:", t)
           return new err_t (
             new error_message_t (
               "expected value_pi_t"))
@@ -1721,7 +1723,7 @@ class value_pi_t extends value_t {
     let fresh_name = freshen (
       ctx.names (),
       this.ret_type.name)
-    return new exp_sigma_t (
+    return new exp_pi_t (
       fresh_name,
       this.arg_type.read_back (
         ctx, new value_universe_t ()),
@@ -1737,13 +1739,13 @@ class value_pi_t extends value_t {
 
 export
 class value_lambda_t extends value_t {
-  body: closure_t
+  closure: closure_t
 
   constructor (
-    body: closure_t,
+    closure: closure_t,
   ) {
     super ()
-    this.body = body
+    this.closure = closure
   }
 
   read_back (ctx: ctx_t, t: value_t): exp_t {

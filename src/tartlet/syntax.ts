@@ -8,12 +8,16 @@ export let VAR = (
   name: string,
 ) => new cc.exp_var_t (name)
 
-
 export let PI = (
   name: string,
   arg_type: cc.exp_t,
   ret_type: cc.exp_t,
 ) => new cc.exp_pi_t (name, arg_type, ret_type)
+
+export let ARROW = (
+  arg_type: cc.exp_t,
+  ret_type: cc.exp_t,
+) => new cc.exp_pi_t ("_arg", arg_type, ret_type)
 
 export let LAMBDA = (
   name: string,
@@ -30,6 +34,11 @@ export let SIGMA = (
   car_type: cc.exp_t,
   cdr_type: cc.exp_t,
 ) => new cc.exp_sigma_t (name, car_type, cdr_type)
+
+export let PAIR = (
+  car_type: cc.exp_t,
+  cdr_type: cc.exp_t,
+) => new cc.exp_sigma_t ("_car", car_type, cdr_type)
 
 export let CONS = (
   car: cc.exp_t,
@@ -58,7 +67,6 @@ export let IND_NAT = (
   base: cc.exp_t,
   step: cc.exp_t,
 ) => new cc.exp_ind_nat_t (target, motive, base, step)
-
 
 export let EQV = (
   t: cc.exp_t,
