@@ -373,3 +373,5 @@
         If input is a definition, check it and add it to the context.
 
 *** 7.5 Projects
+
+*** 7.6 Putting It Together
