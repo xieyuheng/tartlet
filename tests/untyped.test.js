@@ -9,10 +9,10 @@ import {
 
 test ("exp.eval", t => {
   LAMBDA ("x", LAMBDA ("y", VAR ("y")))
-    .eval ()
+    .eval (new cc.env_t ())
 
   APPLY (LAMBDA ("x", VAR ("x")), LAMBDA ("x", VAR ("x")))
-    .eval ()
+    .eval (new cc.env_t ())
 
   t.pass ()
 })
@@ -31,7 +31,7 @@ test ("read_back", t => {
   let value = APPLY (
     LAMBDA ("x", LAMBDA ("y", APPLY (VAR ("x"), VAR ("y")))),
     LAMBDA ("x", VAR ("x")))
-    .eval ()
+    .eval (new cc.env_t ())
   let exp = cc.read_back (new Set (), value)
 
   t.true (exp.eq (LAMBDA ("y", VAR ("y"))))

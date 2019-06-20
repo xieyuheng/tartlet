@@ -11,10 +11,10 @@ import {
 
 test ("exp.eval", t => {
   LAMBDA ("x", LAMBDA ("y", VAR ("y")))
-    .eval ()
+    .eval (new cc.env_t ())
 
   APPLY (LAMBDA ("x", VAR ("x")), LAMBDA ("x", VAR ("x")))
-    .eval ()
+    .eval (new cc.env_t ())
 
   t.pass ()
 })
@@ -40,15 +40,15 @@ test ("exp.infer", t => {
 
 test ("exp.check", t => {
   t.deepEqual (
-    ZERO .check (NAT),
+    ZERO .check (new cc.ctx_t (), NAT),
     new ok_t ("ok"))
 
   t.deepEqual (
-    ADD1 (ZERO) .check (NAT),
+    ADD1 (ZERO) .check (new cc.ctx_t (), NAT),
     new ok_t ("ok"))
 
   t.deepEqual (
-    LAMBDA ("x", VAR ("x")) .check (ARROW (NAT, NAT)),
+    LAMBDA ("x", VAR ("x")) .check (new cc.ctx_t (), ARROW (NAT, NAT)),
     new ok_t ("ok"))
 
   t.deepEqual (
@@ -59,7 +59,7 @@ test ("exp.check", t => {
           LAMBDA (
             "prev", LAMBDA (
               "sum", ADD1 (VAR ("sum")))))))
-      .check (ARROW (NAT, ARROW (NAT, NAT))),
+      .check (new cc.ctx_t (), ARROW (NAT, ARROW (NAT, NAT))),
     new ok_t ("ok"))
 
   t.pass ()

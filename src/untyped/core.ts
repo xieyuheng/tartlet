@@ -85,7 +85,7 @@ class lambda_t extends exp_t {
       && this.body.eq (that.body)
   }
 
-  eval (env: env_t = new env_t ()): closure_t {
+  eval (env: env_t): closure_t {
     return new closure_t (env, this.name, this.body)
   }
 }
@@ -104,7 +104,7 @@ class var_t extends exp_t {
       && this.name === that.name
   }
 
-  eval (env: env_t = new env_t ()): value_t {
+  eval (env: env_t): value_t {
     return env.find (this.name) .unwrap_or_throw (
       new Error (`undefined name: ${this.name}`))
   }
@@ -130,7 +130,7 @@ class apply_t extends exp_t {
       && this.rand.eq (that.rand)
   }
 
-  eval (env: env_t = new env_t ()): value_t {
+  eval (env: env_t): value_t {
     let fun = this.rator.eval (env)
     let arg = this.rand.eval (env)
 

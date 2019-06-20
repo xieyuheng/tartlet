@@ -154,7 +154,7 @@ abstract class exp_t {
     -----------------
     ctx :- e <= A
   */
-  check (t: type_t, ctx: ctx_t = new ctx_t ()): result_t <"ok", string> {
+  check (ctx: ctx_t, t: type_t): result_t <"ok", string> {
     return this.infer (ctx) .bind (t2 => {
       if (t2.eq (t)) {
         return result_t.pure ("ok")
@@ -186,7 +186,7 @@ class lambda_t extends exp_t {
       && this.body.eq (that.body)
   }
 
-  eval (env: env_t = new env_t ()): closure_t {
+  eval (env: env_t): closure_t {
     return new closure_t (env, this.name, this.body)
   }
 
@@ -195,12 +195,12 @@ class lambda_t extends exp_t {
     -------------------------
     ctx :- lambda (x) { e } <= A -> B
   */
-  check (t: type_t, ctx: ctx_t = new ctx_t ()): result_t <"ok", string> {
+  check (ctx: ctx_t, t: type_t): result_t <"ok", string> {
     if (t instanceof arrow_t) {
       let arrow = t
       return this.body.check (
-        arrow.ret,
-        ctx.ext (this.name, arrow.arg))
+        ctx.ext (this.name, arrow.arg),
+        arrow.ret)
     } else {
       return new err_t (
         `type of lambda is not arrow_t, bound name: ${this.name}`)
@@ -222,7 +222,7 @@ class var_t extends exp_t {
       && this.name === that.name
   }
 
-  eval (env: env_t = new env_t ()): value_t {
+  eval (env: env_t): value_t {
     return env.find (this.name) .unwrap_or_throw (
       new Error (`undefined name: ${this.name}`))
   }
@@ -277,7 +277,7 @@ class apply_t extends exp_t {
     }
   }
 
-  eval (env: env_t = new env_t ()): value_t {
+  eval (env: env_t): value_t {
     return apply_t.exe (
       this.rator.eval (env),
       this.rand.eval (env))
@@ -293,7 +293,7 @@ class apply_t extends exp_t {
     return this.rator.infer (ctx)
       .bind (rator_type => {
         if (rator_type instanceof arrow_t) {
-          return this.rand.check (rator_type.arg, ctx)
+          return this.rand.check (ctx, rator_type.arg)
             .bind (_ => {
               return result_t.pure (rator_type.ret)
             })
@@ -348,7 +348,7 @@ class module_t {
   define (name: string, exp: exp_t): this {
     let t = this.ctx.find (name) .unwrap_or_throw (
       new Error (`name: ${name} is not claimed before define`))
-    exp.check (t, this.ctx) .match ({
+    exp.check (this.ctx, t) .match ({
       ok: _value => {},
       err: error => {
         new Error (`type check fail for name: ${name}, error: ${error}`)
@@ -560,7 +560,7 @@ class the_t extends exp_t {
       && this.exp.eq (that.exp)
   }
 
-  eval (env: env_t = new env_t ()): value_t {
+  eval (env: env_t): value_t {
     return this.exp.eval (env)
   }
 
@@ -640,7 +640,7 @@ class rec_nat_t extends exp_t {
     }
   }
 
-  eval (env: env_t = new env_t ()): value_t {
+  eval (env: env_t): value_t {
     return rec_nat_t.exe (
       this.t,
       this.target.eval (env),
@@ -659,11 +659,12 @@ class rec_nat_t extends exp_t {
     return this.target.infer (ctx)
       .bind (target_type => {
         if (target_type.eq (new nat_t ())) {
-          return this.base.check (this.t, ctx)
+          return this.base.check (ctx, this.t)
             .bind (__ => {
               return this.step.check (
-                new arrow_t (new nat_t, new arrow_t (this.t, this.t)),
-                ctx)
+                ctx, new arrow_t (
+                  new nat_t,
+                  new arrow_t (this.t, this.t)))
             }) .bind (__ => {
               return result_t.pure (this.t)
             })
@@ -684,7 +685,7 @@ class zero_t extends exp_t {
     return that instanceof zero_t
   }
 
-  eval (env: env_t = new env_t ()): value_t {
+  eval (env: env_t): value_t {
     return new value_zero_t ()
   }
 
@@ -692,7 +693,7 @@ class zero_t extends exp_t {
     -------------------
     ctx :- zero <= Nat
   */
-  check (t: type_t, ctx: ctx_t = new ctx_t ()): result_t <"ok", string> {
+  check (ctx: ctx_t, t: type_t): result_t <"ok", string> {
     if (t.eq (new nat_t ())) {
       return result_t.pure ("ok")
     } else {
@@ -715,7 +716,7 @@ class add1_t extends exp_t {
       && this.prev.eq (that.prev)
   }
 
-  eval (env: env_t = new env_t ()): value_t {
+  eval (env: env_t): value_t {
     return new value_add1_t (this.prev.eval (env))
   }
 
@@ -724,9 +725,9 @@ class add1_t extends exp_t {
     -------------------
     ctx :- add1 (n) <= Nat
   */
-  check (t: type_t, ctx: ctx_t = new ctx_t ()): result_t <"ok", string> {
+  check (ctx: ctx_t, t: type_t): result_t <"ok", string> {
     if (t.eq (new nat_t ())) {
-      return this.prev.check (t, ctx)
+      return this.prev.check (ctx, t)
     } else {
       return new err_t ("the type of add1_t should be nat_t")
     }
