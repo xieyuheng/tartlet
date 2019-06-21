@@ -21,7 +21,7 @@ class env_t {
     this.map = map
   }
 
-  find (name: string): option_t <value_t> {
+  lookup_value (name: string): option_t <value_t> {
     let value = this.map.get (name)
     if (value !== undefined) {
       return new some_t (value)
@@ -105,7 +105,7 @@ class var_t extends exp_t {
   }
 
   eval (env: env_t): value_t {
-    return env.find (this.name) .unwrap_or_throw (
+    return env.lookup_value (this.name) .unwrap_or_throw (
       new Error (`undefined name: ${this.name}`))
   }
 }
@@ -161,7 +161,7 @@ class module_t {
   /** `use` means "import all from" */
   use (other: module_t): this {
     for (let [name, value] of other.env.map.entries ()) {
-      this.env.find (name) .match ({
+      this.env.lookup_value (name) .match ({
         some: _value => {
           throw new Error (`name alreay defined: ${name}`)
         },

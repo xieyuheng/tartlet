@@ -21,7 +21,7 @@ class env_t {
     this.map = map
   }
 
-  find (name: string): option_t <value_t> {
+  lookup_value (name: string): option_t <value_t> {
     let value = this.map.get (name)
     if (value !== undefined) {
       return new some_t (value)
@@ -52,7 +52,7 @@ class ctx_t {
     this.map = map
   }
 
-  find (name: string): option_t <type_t> {
+  lookup_type (name: string): option_t <type_t> {
     let value = this.map.get (name)
     if (value !== undefined) {
       return new some_t (value)
@@ -223,18 +223,18 @@ class var_t extends exp_t {
   }
 
   eval (env: env_t): value_t {
-    return env.find (this.name) .unwrap_or_throw (
+    return env.lookup_value (this.name) .unwrap_or_throw (
       new Error (`undefined name: ${this.name}`))
   }
 
   /*
     --------------------------
-    ctx.find (x, A) :- x => A
+    ctx.lookup_type (x, A) :- x => A
   */
   infer (ctx: ctx_t): result_t <type_t, string> {
-    return ctx.find (this.name) .match ({
+    return ctx.lookup_type (this.name) .match ({
       some: t => result_t.pure (t),
-      none: () => new err_t ("can not find var in ctx"),
+      none: () => new err_t ("can not lookup var in ctx"),
     })
   }
 }
@@ -328,7 +328,7 @@ class module_t {
   /** `use` means "import all from" */
   use (other: module_t): this {
     for (let [name, value] of other.env.map.entries ()) {
-      this.env.find (name) .match ({
+      this.env.lookup_value (name) .match ({
         some: _value => {
           throw new Error (`name alreay defined: ${name}`)
         },
@@ -346,7 +346,7 @@ class module_t {
   }
 
   define (name: string, exp: exp_t): this {
-    let t = this.ctx.find (name) .unwrap_or_throw (
+    let t = this.ctx.lookup_type (name) .unwrap_or_throw (
       new Error (`name: ${name} is not claimed before define`))
     exp.check (this.ctx, t) .match ({
       ok: _value => {},

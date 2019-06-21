@@ -55,7 +55,7 @@ class ctx_t {
     this.map = map
   }
 
-  lookup (name: string): option_t <den_t> {
+  lookup_den (name: string): option_t <den_t> {
     let den = this.map.get (name)
     if (den !== undefined) {
       return new some_t (den)
@@ -2223,7 +2223,7 @@ class module_t {
   /** `use` means "import all from" */
   use (other: module_t): this {
     for (let [name, den] of other.ctx.map.entries ()) {
-      this.ctx.lookup (name) .match ({
+      this.ctx.lookup_den (name) .match ({
         some: _value => {
           throw new Error (`name alreay defined: ${name}`)
         },
@@ -2253,7 +2253,7 @@ class module_t {
   }
 
   define (name: string, exp: exp_t): this {
-    let den = this.ctx.lookup (name) .unwrap_or_throw (
+    let den = this.ctx.lookup_den (name) .unwrap_or_throw (
       new Error (`name: ${name} is not claimed before define`))
     if (den instanceof bind_t) {
       let t = den.t
