@@ -149,10 +149,10 @@ abstract class exp_t {
   }
 
   /*
-    ctx :- e => B
-    B == A
+    ctx :- e => T2
+    T2 == T
     -----------------
-    ctx :- e <= A
+    ctx :- e <= T
   */
   check (ctx: ctx_t, t: type_t): result_t <"ok", string> {
     return this.infer (ctx) .bind (t2 => {

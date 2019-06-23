@@ -30,10 +30,6 @@ class env_t {
     }
   }
 
-  copy (): env_t {
-    return new env_t (new Map (this.map))
-  }
-
   ext (name: string, value: value_t): env_t {
     return new env_t (new Map (this.map) .set (name, value))
   }
@@ -152,10 +148,6 @@ class module_t {
     env: env_t = new env_t (),
   ) {
     this.env = env
-  }
-
-  copy (): module_t {
-    return new module_t (this.env.copy ())
   }
 
   /** `use` means "import all from" */
