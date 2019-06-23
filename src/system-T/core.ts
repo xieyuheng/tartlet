@@ -228,8 +228,9 @@ class var_t extends exp_t {
   }
 
   /*
+    ctx.lookup_type (x) == T
     --------------------------
-    ctx.lookup_type (x, A) :- x => A
+    ctx :- VAR (x) => T
   */
   infer (ctx: ctx_t): result_t <type_t, string> {
     return ctx.lookup_type (this.name) .match ({
@@ -287,7 +288,7 @@ class apply_t extends exp_t {
     ctx :- e1 => A -> B
     ctx :- e2 <= A
     ---------------
-    ctx :- (e1 e2) => B
+    ctx :- APPLY (e1, e2) => B
   */
   infer (ctx: ctx_t): result_t <type_t, string> {
     return this.rator.infer (ctx)
@@ -650,27 +651,23 @@ class rec_nat_t extends exp_t {
 
   /*
     ctx :- n <= Nat
-    ctx :- b => A
-    ctx :- s => Nat -> A -> A
+    ctx :- b <= A
+    ctx :- s <= Nat -> A -> A
     -----------------------------------
     ctx :- rec [A] (n, b, s) => A
   */
   infer (ctx: ctx_t): result_t <type_t, string> {
-    return this.target.infer (ctx)
-      .bind (target_type => {
-        if (target_type.eq (new nat_t ())) {
-          return this.base.check (ctx, this.t)
-            .bind (__ => {
-              return this.step.check (
-                ctx, new arrow_t (
-                  new nat_t,
-                  new arrow_t (this.t, this.t)))
-            }) .bind (__ => {
-              return result_t.pure (this.t)
-            })
-        } else {
-          return new err_t ("target type is not nat_t")
-        }
+    return this.target.check (ctx, new nat_t ())
+      .bind (__ => {
+        return this.base.check (ctx, this.t)
+          .bind (__ => {
+            return this.step.check (
+              ctx, new arrow_t (
+                new nat_t,
+                new arrow_t (this.t, this.t)))
+          }) .bind (__ => {
+            return result_t.pure (this.t)
+          })
       })
   }
 }
