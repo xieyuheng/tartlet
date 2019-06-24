@@ -6,6 +6,8 @@ import { option_t, some_t, none_t } from "cicada-lang/lib/option"
 export
 abstract class value_t {
   value_t: "value_t" = "value_t"
+
+  abstract read_back (used_names: Set <string>, t: type_t): exp_t
 }
 
 /**
@@ -86,12 +88,40 @@ class closure_t extends value_t {
     this.name = name
     this.body = body
   }
+
+  read_back (used_names: Set <string>, t: type_t): exp_t {
+    if (t instanceof arrow_t) {
+      let fresh_name = freshen (used_names, "$")
+      return new lambda_t (
+        fresh_name,
+        apply_t.exe (
+          this,
+          new the_neutral_t (
+            t.arg,
+            new neutral_var_t (fresh_name)))
+          .read_back (
+            new Set (used_names) .add (fresh_name),
+            t.ret))
+    } else {
+      throw new Error (
+        `type of lambda should be arrow: ${t.constructor.name}`)
+    }
+  }
 }
 
 export
 class value_zero_t extends value_t {
   constructor () {
     super ()
+  }
+
+  read_back (used_names: Set <string>, t: type_t): exp_t {
+    if (t instanceof nat_t) {
+      return new zero_t ()
+    } else {
+      throw new Error (
+        `type of value_zero_t should be nat_t`)
+    }
   }
 }
 
@@ -104,6 +134,18 @@ class value_add1_t extends value_t {
   ) {
     super ()
     this.prev = prev
+  }
+
+  read_back (used_names: Set <string>, t: type_t): exp_t {
+    if (t instanceof nat_t) {
+      return new add1_t (
+        this.prev.read_back (
+          used_names,
+          new nat_t ()))
+    } else {
+      throw new Error (
+        `type of value_add1_t should be nat_t`)
+    }
   }
 }
 
@@ -133,6 +175,10 @@ class the_neutral_t extends value_t {
     super ()
     this.t = t
     this.neutral = neutral
+  }
+
+  read_back (used_names: Set <string>, t: type_t): exp_t {
+    return this.neutral.read_back_neutral (used_names)
   }
 }
 
@@ -362,8 +408,9 @@ class module_t {
   run (exp: exp_t): result_t <exp_t, string> {
     return exp.infer (this.ctx) .match ({
       ok: t => {
-        let normal_exp = read_back (
-          this.used_names, t, exp.eval (this.env))
+        let normal_exp = exp
+          .eval (this.env)
+          .read_back (this.used_names, t)
         return new ok_t (
           new the_t (t, normal_exp))
       },
@@ -389,6 +436,8 @@ function freshen (
 export
 abstract class neutral_t {
   neutral_t: "neutral_t" = "neutral_t"
+
+  abstract read_back_neutral (used_names: Set <string>): exp_t
 }
 
 export
@@ -398,6 +447,10 @@ class neutral_var_t extends neutral_t {
   constructor (name: string) {
     super ()
     this.name = name
+  }
+
+  read_back_neutral (used_names: Set <string>): exp_t {
+    return new var_t (this.name)
   }
 }
 
@@ -413,6 +466,12 @@ class neutral_apply_t extends neutral_t {
     super ()
     this.rator = rator
     this.rand = rand
+  }
+
+  read_back_neutral (used_names: Set <string>): exp_t {
+    return new apply_t (
+      this.rator.read_back_neutral (used_names),
+      this.rand.value.read_back (used_names, this.rand.t))
   }
 }
 
@@ -435,71 +494,13 @@ class neutral_rec_nat_t extends neutral_t {
     this.base = base
     this.step = step
   }
-}
 
-export
-function read_back (
-  used_names: Set <string>,
-  t: type_t,
-  value: value_t,
-): exp_t {
-  if (t instanceof nat_t) {
-    if (value instanceof value_zero_t) {
-      return new zero_t ()
-    } else if (value instanceof value_add1_t) {
-      return new add1_t (
-        read_back (
-          used_names,
-          new nat_t (),
-          value.prev))
-    } else if (value instanceof the_neutral_t) {
-      return read_back_neutral (
-        used_names,
-        value.neutral)
-    } else {
-      throw new Error (
-        `unknown value of nat_t read_back`)
-    }
-  } else if (t instanceof arrow_t) {
-    let fresh_name = freshen (used_names, "$")
-    return new lambda_t (
-      fresh_name, read_back (
-        new Set (used_names) .add (fresh_name),
-        t.ret,
-        apply_t.exe (
-          value,
-          new the_neutral_t (
-            t.arg,
-            new neutral_var_t (fresh_name)))))
-  } else {
-    throw new Error (`unknown type to read_back: ${t.constructor.name}`)
-  }
-}
-
-export
-function read_back_neutral (
-  used_names: Set <string>,
-  neutral: neutral_t,
-): exp_t {
-  if (neutral instanceof neutral_var_t) {
-    return new var_t (neutral.name)
-  } else if (neutral instanceof neutral_apply_t) {
-    let fun = neutral.rator
-    let arg = neutral.rand
-    return new apply_t (
-      read_back_neutral (used_names, fun),
-      read_back (used_names, arg.t, arg.value))
-  } else if (neutral instanceof neutral_rec_nat_t) {
-    let base = neutral.base
-    let step = neutral.step
+  read_back_neutral (used_names: Set <string>): exp_t {
     return new rec_nat_t (
-      neutral.t,
-      read_back_neutral (used_names, neutral.target),
-      read_back (used_names, base.t, base.value),
-      read_back (used_names, step.t, step.value))
-  } else {
-    throw new Error (
-      `unknown neutral read_back_neutral: ${neutral.constructor.name}`)
+      this.t,
+      this.target.read_back_neutral (used_names),
+      this.base.value.read_back (used_names, this.base.t),
+      this.step.value.read_back (used_names, this.step.t))
   }
 }
 

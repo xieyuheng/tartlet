@@ -1,3 +1,2 @@
-- refactor `read_back` and `read_back_neutral` for system-T.ts
 - test by "the little typer"
 - better error report with `span_t` and `error_context_t`
