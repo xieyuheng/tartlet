@@ -6,6 +6,8 @@ import { option_t, some_t, none_t } from "cicada-lang/lib/option"
 export
 abstract class value_t {
   value_t: "value_t" = "value_t"
+
+  abstract read_back (used_names: Set <string>): exp_t
 }
 
 /**
@@ -50,6 +52,17 @@ class closure_t extends value_t {
     this.env = env
     this.name = name
     this.body = body
+  }
+
+  read_back (used_names: Set <string>): exp_t {
+    let fresh_name = freshen (
+      used_names,
+      this.name)
+    return new lambda_t (
+      fresh_name,
+      this.body.eval (
+        this.env.ext (this.name, new neutral_var_t (fresh_name)))
+        .read_back (new Set (used_names) .add (fresh_name)))
   }
 }
 
@@ -171,7 +184,7 @@ class module_t {
   }
 
   run (exp: exp_t): exp_t {
-    return normalize (this.env, exp)
+    return exp.eval (this.env) .read_back (new Set ())
   }
 }
 
@@ -203,6 +216,10 @@ class neutral_var_t extends neutral_t {
     super ()
     this.name = name
   }
+
+  read_back (used_names: Set <string>): exp_t {
+    return new var_t (this.name)
+  }
 }
 
 export
@@ -218,45 +235,12 @@ class neutral_apply_t extends neutral_t {
     this.rator = rator
     this.rand = rand
   }
-}
 
-export
-function read_back (
-  used_names: Set <string>,
-  value: value_t,
-): exp_t {
-  if (value instanceof closure_t) {
-    let closure = value
-    let fresh_name = freshen (
-      used_names,
-      closure.name)
-    return new lambda_t (
-      fresh_name, read_back (
-        new Set (used_names) .add (fresh_name),
-        closure.body.eval (
-          closure.env.ext (
-            closure.name,
-            new neutral_var_t (fresh_name)))))
-  } else if (value instanceof neutral_var_t) {
-    let neutral_var = value
-    return new var_t (neutral_var.name)
-  } else if (value instanceof neutral_apply_t) {
-    let neutral_apply = value
+  read_back (used_names: Set <string>): exp_t {
     return new apply_t (
-      read_back (used_names, neutral_apply.rator),
-      read_back (used_names, neutral_apply.rand))
-  } else {
-    ut.log (value)
-    throw new Error (`met unknown type of value`)
+      this.rator.read_back (used_names),
+      this.rand.read_back (used_names))
   }
-}
-
-export
-function normalize (
-  env: env_t,
-  exp: exp_t,
-): exp_t {
-  return read_back (new Set (), exp.eval (env))
 }
 
 // Example: Church Numerals
