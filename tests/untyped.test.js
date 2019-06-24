@@ -37,17 +37,6 @@ test ("read_back", t => {
   t.true (exp.eq (LAMBDA ("y", VAR ("y"))))
 })
 
-test ("normalize", t => {
-  let exp = APPLY (
-    LAMBDA ("x", LAMBDA ("y", APPLY (VAR ("x"), VAR ("y")))),
-    LAMBDA ("x", VAR ("x")))
-  let norm = exp
-    .eval (new cc.env_t ())
-    .read_back (new Set())
-
-  t.true (norm.eq (LAMBDA ("y", VAR ("y"))))
-})
-
 test ("module.define", t => {
   let m = MODULE ()
   m.define ("id", LAMBDA ("x", VAR ("x")))
