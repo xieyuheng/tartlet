@@ -1038,16 +1038,7 @@ class exp_ind_nat_t extends exp_t {
             exp_apply_t.exe (motive, new value_zero_t ()),
             base),
           new the_value_t (
-            new value_pi_t (
-              new value_nat_t (),
-              new native_closure_t ("prev", prev => {
-                return new value_pi_t (
-                  exp_apply_t.exe (motive, prev),
-                  new native_closure_t ("almost", almost => {
-                    return exp_apply_t.exe (
-                      motive, new value_add1_t (prev))
-                  }))
-              })),
+            ind_nat_step_type (motive),
             step)))
     } else {
       throw new Error (`exe wrong type of value`)
@@ -1066,7 +1057,7 @@ class exp_ind_nat_t extends exp_t {
   */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
     return this.target
-      .check (ctx, new value_universe_t ())
+      .check (ctx, new value_nat_t ())
       .bind (target => {
         return this.motive
           .check (ctx, new value_pi_t (
