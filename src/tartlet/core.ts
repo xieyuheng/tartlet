@@ -352,7 +352,7 @@ class exp_pi_t extends exp_t {
       ) && this.ret_type.alpha_eq (
         that.ret_type,
         this_map.set (this.name, sym),
-        that_map.set (this.name, sym))
+        that_map.set (that.name, sym))
     } else {
       return false
     }
@@ -420,7 +420,7 @@ class exp_lambda_t extends exp_t {
       return this.body.alpha_eq (
         that.body,
         this_map.set (this.name, sym),
-        that_map.set (this.name, sym))
+        that_map.set (that.name, sym))
     } else {
       return false
     }
@@ -579,7 +579,7 @@ class exp_sigma_t extends exp_t {
       ) && this.cdr_type.alpha_eq (
         that.cdr_type,
         this_map.set (this.name, sym),
-        that_map.set (this.name, sym))
+        that_map.set (that.name, sym))
     } else {
       return false
     }
