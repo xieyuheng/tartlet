@@ -2178,14 +2178,6 @@ class the_value_t {
 }
 
 export
-function alpha_eq (
-  e1: exp_t,
-  e2: exp_t,
-): boolean {
-  return e1.alpha_eq (e2, new Map (), new Map ())
-}
-
-export
 function conversion_check (
   ctx: ctx_t,
   t: value_t,
@@ -2194,7 +2186,7 @@ function conversion_check (
 ): result_t <"ok", error_message_t> {
   let e1 = v1.read_back (ctx, t)
   let e2 = v2.read_back (ctx, t)
-  if (alpha_eq (e2, e1)) {
+  if (e1.alpha_eq (e2, new Map (), new Map ())) {
     return new ok_t ("ok")
   } else {
     return new err_t (
