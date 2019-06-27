@@ -809,7 +809,7 @@ class exp_cdr_t extends exp_t {
   /*
     ctx: p => SIGMA (x: A, D)
     ----------------
-    ctx :- CDR (p) => D .subst (x, CAR (p))
+    ctx :- CDR (p) => D subst (x, CAR (p))
   */
   infer (ctx: ctx_t): result_t <exp_the_t, error_message_t> {
     return this.pair
@@ -2208,7 +2208,7 @@ class module_t {
     for (let [name, den] of other.ctx.map.entries ()) {
       this.ctx.lookup_den (name) .match ({
         some: _value => {
-          throw new Error (`name alreay defined: ${name}`)
+          throw new Error (`name already defined: ${name}`)
         },
         none: () => {
           this.ctx.map.set (name, den)
@@ -2220,7 +2220,7 @@ class module_t {
 
   claim (name: string, t: exp_t): this {
     this.ctx.lookup_type (name) .none_or_throw (
-      new Error (`name: ${name} is alreay claimed`))
+      new Error (`name: ${name} is already claimed`))
 
     t.check (this.ctx, new value_universe_t ()) .match ({
       ok: checked_type => {
@@ -2250,7 +2250,7 @@ class module_t {
         name, new def_t (t, exp.eval (this.ctx.to_env ())))
     } else if (den instanceof def_t) {
       throw new Error (
-        `name: ${name} is alreay defined`)
+        `name: ${name} is already defined`)
     } else {
       throw new Error (
         `unknown sub class of den_t: ${this.constructor.name}`)

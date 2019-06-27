@@ -168,7 +168,7 @@ class module_t {
     for (let [name, value] of other.env.map.entries ()) {
       this.env.lookup_value (name) .match ({
         some: _value => {
-          throw new Error (`name alreay defined: ${name}`)
+          throw new Error (`name already defined: ${name}`)
         },
         none: () => {
           this.env.map.set (name, value)
