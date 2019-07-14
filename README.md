@@ -20,7 +20,7 @@ Dependently-typed language (baking little pie) in javascript.
 - We enforce C4 as collaboration protocol -- [The C4 RFC](https://rfc.zeromq.org/spec:42/C4)
 - [Style Guide](STYLE-GUIDE.md) -- observe the style of existing code and respect it
 - [Code of Conduct](CODE-OF-CONDUCT.md)
-- Source code -- [github](https://github.com/xieyuheng/tartlet), [gitlab](https://gitlab.com/xieyuheng/tartlet)
+- Source code -- [github](https://github.com/xieyuheng/tartlet)
 - CI -- [travis-ci](https://travis-ci.com/xieyuheng/tartlet)
 
 ## Contributing
