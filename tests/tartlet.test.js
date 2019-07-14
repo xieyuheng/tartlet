@@ -1,6 +1,6 @@
 import test from "ava"
-import * as ut from "cicada-lang/lib/util"
-import { result_t, ok_t, err_t } from "cicada-lang/lib/result"
+import * as ut from "cell-complex/lib/util"
+import { result_t, ok_t, err_t } from "cell-complex/lib/result"
 import * as cc from "../lib/tartlet/core"
 import {
   MODULE,

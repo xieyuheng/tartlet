@@ -19,12 +19,12 @@
   "devDependencies": {
     "@types/assert": "^1.4.2",
     "@types/nanoid": "^2.0.0",
-    "ava": "^2.1.0",
+    "ava": "^2.2.0",
     "typedoc": "^0.14.2",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.3"
   },
   "dependencies": {
-    "cicada-lang": "^0.0.42",
+    "cell-complex": "^0.0.42",
     "nanoid": "^2.0.3"
   }
 }
