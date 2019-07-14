@@ -22,8 +22,6 @@ Dependently-typed language (baking little pie) in javascript.
 - [Code of Conduct](CODE-OF-CONDUCT.md)
 - Source code -- [github](https://github.com/xieyuheng/tartlet), [gitlab](https://gitlab.com/xieyuheng/tartlet)
 - CI -- [gitlab-ci](https://gitlab.com/xieyuheng/tartlet/pipelines)
-- Related Project
-  - [baozi](https://github.com/xieyuheng/baozi) -- dependently-typed language in scala
 
 ## Contributing
 
