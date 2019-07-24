@@ -21,7 +21,7 @@ Dependently-typed language (baking little pie) in javascript.
 - [Style Guide](STYLE-GUIDE.md) -- observe the style of existing code and respect it
 - [Code of Conduct](CODE-OF-CONDUCT.md)
 - Source code -- [github](https://github.com/xieyuheng/tartlet)
-- CI -- [travis-ci](https://travis-ci.com/xieyuheng/tartlet)
+- CI -- [travis-ci](https://travis-ci.org/xieyuheng/tartlet)
 
 ## Contributing
 
