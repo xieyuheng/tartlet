@@ -17,10 +17,10 @@
     "api": "npm run api-build; npm run api-surge; npm run api-now"
   },
   "devDependencies": {
-    "@types/assert": "^1.4.2",
+    "@types/assert": "^1.4.3",
     "@types/nanoid": "^2.0.0",
     "ava": "^2.2.0",
-    "typedoc": "^0.14.2",
+    "typedoc": "^0.15.0",
     "typescript": "^3.5.3"
   },
   "dependencies": {
