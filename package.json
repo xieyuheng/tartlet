@@ -25,6 +25,6 @@
   },
   "dependencies": {
     "cell-complex": "0.0.44",
-    "nanoid": "^2.0.3"
+    "nanoid": "^2.0.4"
   }
 }
