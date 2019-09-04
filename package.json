@@ -24,7 +24,7 @@
     "typescript": "^3.6.2"
   },
   "dependencies": {
-    "cell-complex": "0.0.44",
+    "cell-complex": "^0.0.45",
     "nanoid": "^2.1.0"
   }
 }
