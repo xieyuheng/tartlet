@@ -18,13 +18,13 @@
   },
   "devDependencies": {
     "@types/assert": "^1.4.3",
-    "@types/nanoid": "^2.0.0",
+    "@types/nanoid": "^2.1.0",
     "ava": "^2.4.0",
     "typedoc": "^0.15.0",
-    "typescript": "^3.6.3"
+    "typescript": "^3.6.4"
   },
   "dependencies": {
     "cell-complex": "^0.0.45",
-    "nanoid": "^2.1.1"
+    "nanoid": "^2.1.3"
   }
 }
