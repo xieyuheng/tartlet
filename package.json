@@ -20,7 +20,7 @@
     "@types/assert": "^1.4.3",
     "@types/nanoid": "^2.1.0",
     "ava": "^2.4.0",
-    "typedoc": "^0.15.1",
+    "typedoc": "^0.15.2",
     "typescript": "^3.7.2"
   },
   "dependencies": {
