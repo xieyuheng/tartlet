@@ -1,8 +1,8 @@
 import assert from "assert"
 import nanoid from "nanoid"
-import * as ut from "cell-complex/lib/util"
-import { result_t, ok_t, err_t } from "cell-complex/lib/result"
-import { option_t, some_t, none_t } from "cell-complex/lib/option"
+import * as ut from "@cicadoidea/basic/lib/util"
+import { result_t, ok_t, err_t } from "@cicadoidea/basic/lib/result"
+import { option_t, some_t, none_t } from "@cicadoidea/basic/lib/option"
 
 export
 class error_message_t {
