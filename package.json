@@ -20,11 +20,11 @@
     "@types/assert": "^1.4.3",
     "@types/nanoid": "^2.1.0",
     "ava": "^2.4.0",
-    "typedoc": "^0.15.2",
-    "typescript": "^3.7.2"
+    "typedoc": "^0.15.6",
+    "typescript": "^3.7.4"
   },
   "dependencies": {
-    "@cicadoidea/basic": "0.0.3",
-    "nanoid": "^2.1.7"
+    "@cicadoidea/basic": "0.0.17",
+    "nanoid": "^2.1.8"
   }
 }
