@@ -17,14 +17,14 @@
     "api": "npm run api-build; npm run api-surge; npm run api-now"
   },
   "devDependencies": {
-    "@types/assert": "^1.4.3",
+    "@types/assert": "^1.4.6",
     "@types/nanoid": "^2.1.0",
-    "ava": "^2.4.0",
-    "typedoc": "^0.15.6",
-    "typescript": "^3.7.4"
+    "ava": "^3.5.1",
+    "typedoc": "^0.17.3",
+    "typescript": "^3.8.3"
   },
   "dependencies": {
     "@cicadoidea/basic": "0.0.17",
-    "nanoid": "^2.1.8"
+    "nanoid": "^2.1.11"
   }
 }
